@@ -6,7 +6,7 @@ export default ()=> {
         <div className="flex items-center justify-center min-h-screen bg-gray-100 relative dark:bg-gray-800">
             <div className="flex flex-col justify-center items-center w-[450px] border-2 border-transparent rounded-xl py-6 px-8 font-mono [box-shadow:0px_0px_50px_#c7c7c7]">
                 <div> {/* welcome back section */}
-                    <h1 className="text-4xl font-extrabold">Welcome to Dotify!</h1>
+                    <h1 className="text-4xl font-extrabold">Welcome to Lapangin!</h1>
                     <p className="text-gray-600 mt-3 dark:text-white">Sign in to continue</p>
                 </div>
 

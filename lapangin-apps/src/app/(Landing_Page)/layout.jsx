@@ -11,6 +11,7 @@ export default function Landing_PageLayout({children}){
               <li ><Link href='/About'>About</Link></li>
               <li ><Link href='/Features'>Features</Link></li>
               <li ><Link href='/login'>Login</Link></li>
+              <li ><Link href='/sign_in'>Sign Up</Link></li>
             </ul>
           </nav>
         </header>
