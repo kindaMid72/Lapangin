@@ -1,9 +1,9 @@
 
+// components
+import DashboardPage from '@/features/Dashboard/DashboardPage.jsx';
 
 export default function Dashboard(){
     return (
-        <div>
-            <h1>ini adalah dashboard</h1>
-        </div>
+        <DashboardPage/>
     )
 }

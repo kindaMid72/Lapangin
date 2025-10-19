@@ -1,6 +1,6 @@
 
 // components
-import BookingPage from '@/features/Bookings/BookingsPage';
+import BookingPage from '@/features/Bookings/BookingsPage.jsx';
 
 export default function bookings(){
     return (
