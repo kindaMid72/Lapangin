@@ -21,9 +21,9 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark bg-white">
       <body
-        className={`roboto-mono-regular antialiased `}
+        className={`roboto-mono-regular antialiased bg-white`}
       >
         {children}
       </body>

@@ -1,9 +1,9 @@
 
+// components
+import BookingPage from '@/features/Bookings/BookingsPage';
 
 export default function bookings(){
     return (
-        <div>
-            <h1>ini adalah booking</h1>
-        </div>
+        <BookingPage/>
     )
 }
