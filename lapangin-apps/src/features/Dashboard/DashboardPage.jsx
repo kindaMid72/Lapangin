@@ -14,9 +14,9 @@ export default function Dashboard() {
         
         <div className="flex flex-nowrap gap-3 p-4 justify-evenly items-stretch"> {/* infomation card section */}
             <ShowCard title="Booking Hari ini" value="12" statisticValue={"12% from yesterday"} icon={<i class="fa-solid fa-calendar text-[3em] text-green-500"></i>}/>
-            <ShowCard title='Pendapatan Mingguan' value="Rp. 8.000.-----------------000" statisticValue={"8% dari minggu lalu"} icon={<i class="fa-solid fa-dollar-sign text-[3em] text-green-500"></i>}/>
-            <ShowCard title='Rasio Terisi' value="69%" statisticValue={"8% dari minggu lalu"} icon={<i class="fa-solid fa-dollar-sign text-[3em] text-green-500"></i>}/>
-            <ShowCard title='Pendapatan Mingguan' value="Rp. 8.000.000" statisticValue={"8% dari minggu lalu"} icon={<i class="fa-solid fa-dollar-sign text-[3em] text-green-500"></i>}/>
+            <ShowCard title='Pendapatan Mingguan' value="Rp 8.000.000" statisticValue={"8% dari minggu lalu"} icon={<i class="fa-solid fa-dollar-sign text-[3em] text-green-500"></i>}/>
+            <ShowCard title='Rasio Terisi' value="69%" statisticValue={"8% dari minggu lalu"} icon={<i class="fa-solid fa-percent text-[3em] text-green-500"></i>}/>
+            <ShowCard title='Pendapatan Mingguan' value="Rp. 8.000.000" statisticValue={"8% dari minggu lalu"} icon={<i class="fa-solid fa-chart-line text-[3em] text-green-500"></i>}/>
         </div>
 
         <div className="flex flex-col p-5 py-3 h-full overflow-auto">
