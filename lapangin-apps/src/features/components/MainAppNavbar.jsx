@@ -8,7 +8,7 @@ export default function NavBar() {
 
 
     return (
-        <ul className="flex gap-4 light:bg-slate-100 items-center dark:bg-slate-900 [&_li]:hover:bg-green-700 [&_li]:cursor-pointer text-[1em] p-2 [&_li]:font-mono [&_li]:text-[1em] rounded-b-xl">
+        <ul className="flex flex-wrap gap-4 light:bg-slate-100 items-center dark:bg-slate-900 [&_li]:hover:bg-green-700 [&_li]:cursor-pointer text-[1em] p-2 [&_li]:font-mono [&_li]:text-[1em] rounded-b-xl">
             <li className="px-3 py-1 hover:!bg-transparent text-green-500 rounded-lg !font-[900] !text-2xl ">Lapangin</li>
             <li className="px-3 py-1 bg-green-800 rounded-lg h-fit" onClick={() => router.replace('/dashboard')}><i className="fa-solid fa-table mr-2 "></i>Dashboard</li>
             <li className="px-3 py-1 bg-green-800 rounded-lg h-fit" onClick={() => router.replace('/bookings')}><i className="fa-solid fa-calendar mr-2 "></i>Bookings</li>

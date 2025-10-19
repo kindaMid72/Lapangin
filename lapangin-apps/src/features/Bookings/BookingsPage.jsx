@@ -1,6 +1,6 @@
 
 
-import BookingPageRow from "@/features/Bookings/components/BookingTableRowsView";
+import BookingPageRow from "@/features/components/BookingTableRowsView";
 
 
 export default function BookingPage() {
