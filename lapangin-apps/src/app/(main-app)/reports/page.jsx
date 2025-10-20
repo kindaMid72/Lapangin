@@ -1,10 +1,9 @@
 
-
+// components
+import ReportPage from "@/features/Report/ReportPage.jsx";
 
 export default function reports(){
     return (
-        <div>
-            <h1>ini adalah reports</h1>
-        </div>
+        <ReportPage/>
     )
 }

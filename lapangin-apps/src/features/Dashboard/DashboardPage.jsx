@@ -1,6 +1,6 @@
 
 // components
-import ShowCard from "@/features/Dashboard/components/ShowCard";
+import ShowCard from "@/features/components/InfoCard.jsx";
 import BookingPageRow from "../components/BookingTableRowsView.jsx";
 
 
@@ -13,9 +13,9 @@ export default function Dashboard() {
         </div>
         
         <div className="flex flex-nowrap gap-3 p-4 justify-evenly items-stretch"> {/* infomation card section */}
-            <ShowCard title="Booking Hari ini" value="12" statisticValue={"12% from yesterday"} icon={<i class="fa-solid fa-calendar text-[3em] text-green-500"></i>}/>
-            <ShowCard title='Pendapatan Mingguan' value="Rp 8.000.000" statisticValue={"8% dari minggu lalu"} icon={<i class="fa-solid fa-dollar-sign text-[3em] text-green-500"></i>}/>
-            <ShowCard title='Rasio Terisi' value="69%" statisticValue={"8% dari minggu lalu"} icon={<i class="fa-solid fa-percent text-[3em] text-green-500"></i>}/>
+            <ShowCard title="Booking Hari ini" value="12" statisticValue={"12% from yesterday"} icon={<i class="fa-solid fa-calendar text-[3em] text-yellow-400"></i>}/>
+            <ShowCard title='Pendapatan Mingguan' value="Rp 8.000.000" statisticValue={"8% dari minggu lalu"} icon={<i class="fa-solid fa-dollar-sign text-[3em] text-green-400"></i>}/>
+            <ShowCard title='Rasio Terisi' value="69%" statisticValue={"8% dari minggu lalu"} icon={<i class="fa-solid fa-percent text-[3em] text-stone-400"></i>}/>
             <ShowCard title='Pendapatan Mingguan' value="Rp. 8.000.000" statisticValue={"8% dari minggu lalu"} icon={<i class="fa-solid fa-chart-line text-[3em] text-green-500"></i>}/>
         </div>
 
