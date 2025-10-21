@@ -12,9 +12,9 @@ import UserRowsData from "./UserRowsData";
 export default function TeamPage() {
 
 
-    return (<>
+    return (<div className="min-h-screen h-fit bg-white dark:bg-gray-800">
         {/* header section */}
-        <div className="flex justify-start w-full p-4"> {/** header */}
+        <div className="flex justify-start w-full p-4 h-fit dark:bg-gray-800"> {/** header */}
             <div className="flex-1">
                 <h1 className="text-xl font-extrabold">Kelola Tim</h1>
                 <p className="text-sm font-light">Atur anggota tim dan izin akses mereka</p>
@@ -33,21 +33,21 @@ export default function TeamPage() {
         </div>
 
         {/* user list section */}
-        <div className="p-3 w-full ">
-        <table className="border-2 w-full border-gray-700 rounded-xl overflow-hidden border-separate border-spacing-0 [&_th]:p-2">
+        <div className="p-3 w-full h-fit dark:bg-gray-800 bg-white">
+        <table className="border-2 w-full h-fit dark:bg-gray-800 border-gray-700 rounded-xl border-separate border-spacing-0 [&_th]:p-2">
             <thead >
                 {/* Anggota, role, status, action */}
                 <tr className=" [&_th]:border-b-2 [&_th]:border-gray-700 [&_th]:text-center bg-gray-900 ">
-                    <th>Anggota</th>
+                    <th className="rounded-tl-xl">Anggota</th>
                     <th>Kontak</th>
                     <th>Role</th>
                     <th>Bergabung</th>
                     <th>Status</th>
-                    <th>Aksi</th>
+                    <th className="rounded-tr-xl">Aksi</th>
                 </tr>
             </thead>
                 
-            <tbody>
+            <tbody className="h-fit bg-white dark:bg-gray-800">
                 <UserRowsData Anggota="David" Kontak={{email: 'king@gmail.com', phone: '08123456789'}} Role='Pemilik' Bergabung={Date.now()} Status={'Aktif' === 'Aktif'? <i className="fa-solid fa-user-check text-green-500"></i> : <i className="fa-solid fa-user-slash text-red-500"></i>} />
                 <UserRowsData Anggota="David" Kontak={{email: 'king@gmail.com', phone: '08123456789'}} Role='Admin' Bergabung={Date.now()} Status={'Aif' === 'Aktif'? <i className="fa-solid fa-user-check text-green-500"></i> : <i className="fa-solid fa-user-slash text-red-500"></i>} />
                 <UserRowsData Anggota="David" Kontak={{email: 'king@gmail.com', phone: '08123456789'}} Role='Karyawan' Bergabung={Date.now()} Status={'Aktif' === 'Aktif'? <i className="fa-solid fa-user-check text-green-500"></i> : <i className="fa-solid fa-user-slash text-red-500"></i>}/>
@@ -57,5 +57,5 @@ export default function TeamPage() {
             </tbody>
         </table>
         </div>
-    </>)
+    </div>)
 }

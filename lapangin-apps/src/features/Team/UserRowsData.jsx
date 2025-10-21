@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * FIXME: event listener is act kinda weird
+ * FIXME: action button hidden menu is overflowed and cant be interact with
  */
 
 import { useEffect, useRef } from 'react';
@@ -11,6 +11,8 @@ export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
     // state
     const clickFocus = useRef(null);
     const excludeFocusButton = useRef(null);
+
+    
 
     // formatted date
     const date = new Date(Bergabung);
@@ -23,8 +25,6 @@ export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
     // handler
     // click focus handler for edit dropdown menu
     function clickFocusHandler(e) {
-        e.stopPropagation();
-        e.preventDefault();
         clickFocus.current.classList.toggle('hidden');
     }
     useEffect(() => {
@@ -33,7 +33,7 @@ export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
         // 3. if true, do nothing
         // 4. remove the event listener if the component is unmounted
         function checkFocus(e) {
-            if (clickFocus.current && !clickFocus.current.contains(e.target) && !excludeFocusButton.current.contains(e.target)) {
+            if (clickFocus.current && !clickFocus.current.contains(e.target) && !excludeFocusButton.current.contains(e.target)) { // prevent race condition
                 clickFocus.current.classList.add('hidden');
             }
         }
@@ -42,7 +42,7 @@ export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
             document.removeEventListener('mousedown', checkFocus);
         }
 
-    }, [clickFocus])
+    }, [clickFocus, excludeFocusButton])
 
 
     return (<>
@@ -74,12 +74,12 @@ export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
             </td>
             <td className='relative'>{/** aksi */}
                 <div className="flex items-center justify-center">
-                    <div ref={excludeFocusButton} onClick={(e) => clickFocusHandler(e)} className="p-2 rounded-full hover:bg-gray-600 w-fit h-fit cursor-pointer flex justify-center items-center">
+                    <div ref={excludeFocusButton} onClick={clickFocusHandler} className="p-2 rounded-full hover:bg-gray-600 w-fit h-fit cursor-pointer flex justify-center items-center">
                         <i className="fa-solid fa-pen-to-square"></i>
                     </div>
                 </div>
                 {/* dropdown menu */}
-                <div ref={clickFocus} className="hidden absolute right-5 top-13 w-fit z-40">
+                <div ref={clickFocus} className="hidden absolute right-5 top-13 w-fit z-40 dark:bg-gray-800 bg-white">
                     <ol className='flex items-center flex-col border-1 p-1 bg-white dark:bg-gray-600 rounded-xl max-w-fit text-white dark:text-white  font-bold dark:[&_li]:hover:bg-yellow-300 [&_li]:hover:bg-yellow-500 border-transparent [&_li]:cursor-pointer [&_li]:p-1 [&_li]:rounded-lg [&_li]:w-full [&_li]:hover:text-black '>
                         <li className='flex gap-3 items-center min-w-fit'> <i className="fa-solid  fa-pen"></i><p className='flex-1 text-nowrap'>Edit</p></li>
                         <li className='flex gap-3 items-center min-w-fit'> <i className="fa-solid  fa-shield-halved"></i> <p className='flex-1 text-nowrap'>Kelola Akses</p></li>
