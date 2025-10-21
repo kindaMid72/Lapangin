@@ -4,12 +4,13 @@
  * FIXME: event listener is act kinda weird
  */
 
-import React, {useEffect, useState, useRef} from 'react';
+import { useEffect, useRef } from 'react';
 
 export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
 
     // state
     const clickFocus = useRef(null);
+    const excludeFocusButton = useRef(null);
 
     // formatted date
     const date = new Date(Bergabung);
@@ -21,16 +22,18 @@ export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
 
     // handler
     // click focus handler for edit dropdown menu
-    function clickFocusHandler(){
+    function clickFocusHandler(e) {
+        e.stopPropagation();
+        e.preventDefault();
         clickFocus.current.classList.toggle('hidden');
     }
-    useEffect(()=>{ 
+    useEffect(() => {
         // 1. check if the current focus is the children or not
         // 2. if not, hide element
         // 3. if true, do nothing
         // 4. remove the event listener if the component is unmounted
-        function checkFocus(e){
-            if(clickFocus.current && !clickFocus.current.contains(e.target)){
+        function checkFocus(e) {
+            if (clickFocus.current && !clickFocus.current.contains(e.target) && !excludeFocusButton.current.contains(e.target)) {
                 clickFocus.current.classList.add('hidden');
             }
         }
@@ -71,7 +74,7 @@ export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
             </td>
             <td className='relative'>{/** aksi */}
                 <div className="flex items-center justify-center">
-                    <div onClick={()=> clickFocusHandler()} className="p-2 rounded-full hover:bg-gray-600 w-fit h-fit cursor-pointer flex justify-center items-center">
+                    <div ref={excludeFocusButton} onClick={(e) => clickFocusHandler(e)} className="p-2 rounded-full hover:bg-gray-600 w-fit h-fit cursor-pointer flex justify-center items-center">
                         <i className="fa-solid fa-pen-to-square"></i>
                     </div>
                 </div>
