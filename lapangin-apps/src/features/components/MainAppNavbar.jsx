@@ -14,7 +14,7 @@ export default function NavBar() {
             <li className="px-3 py-1 bg-green-800 rounded-lg h-fit" onClick={() => router.replace('/bookings')}><i className="fa-solid fa-calendar mr-2 "></i>Bookings</li>
             <li className="px-3 py-1 bg-green-800 rounded-lg h-fit" onClick={() => router.replace('/courts')}><i className="fa-solid fa-layer-group mr-2 "></i>Courts</li>
             <li className="px-3 py-1 bg-green-800 rounded-lg h-fit" onClick={() => router.replace('/reports')}><i className="fa-solid fa-chart-simple mr-2 "></i>Report</li>
-            <li className="px-3 py-1 bg-green-800 rounded-lg h-fit" onClick={() => router.replace('/team')}><i className="fa-solid fa-user-plus mr-2 "></i>Team</li>
+            <li className="px-3 py-1 bg-green-800 rounded-lg h-fit" onClick={() => router.replace('/team')}><i className="fa-solid fa-people-group mr-2 "></i>Team</li>
             <li className="px-3 py-1 bg-green-800 rounded-lg h-fit" onClick={() => router.replace('/settings')}><i className="fa-solid fa-gear mr-2 "></i>Settings</li>
             <div className='flex flex-1 justify-end items-center gap-2 mr-2'>
                 <h3>{'Sosok Hitam'}</h3>
