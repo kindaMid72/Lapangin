@@ -1,12 +1,15 @@
 'use client'
 
+/**
+ * FIXME: event listener is act kinda weird
+ */
+
 import React, {useEffect, useState, useRef} from 'react';
 
 export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
 
     // state
-    const clickFocus = React.useRef(null);
-
+    const clickFocus = useRef(null);
 
     // formatted date
     const date = new Date(Bergabung);
@@ -31,9 +34,9 @@ export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
                 clickFocus.current.classList.add('hidden');
             }
         }
-        document.addEventListener('click', checkFocus);
+        document.addEventListener('mousedown', checkFocus);
         return () => {
-            document.removeEventListener('click', checkFocus);
+            document.removeEventListener('mousedown', checkFocus);
         }
 
     }, [clickFocus])
@@ -41,25 +44,27 @@ export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
 
     return (<>
         <tr key={Kontak.email} className="text-center [&_td]:border-b-1 [&_td]:border-b-gray-700 [&_td]:p-2">
-            <td>{Anggota}</td> {/* anggota: nama */}
+            <td> {/** anggota */}
+                {Anggota}
+            </td>
             <td>{/* kontak */}
                 <p><i className="fa-solid fa-envelope"></i> {Kontak.email}</p>
                 <p><i className="fa-solid fa-phone"></i> {Kontak.phone}</p>
             </td>
-            <td> {/** role */}
+            <td>{/** role */}
                 <div className="flex justify-center cursor-default">
                     <div className={'rounded-lg px-2 w-fit text-center flex justify-center'} style={{ backgroundColor: Role === 'Pemilik' ? '#287f28' : Role === 'Admin' ? '#aca51a' : '#757568' }}>
                         <p className="font-bold text-white">{Role}</p>
                     </div>
                 </div>
             </td>
-            <td>{/* Bergabung: tanggal */}
+            <td>{/**  Bergabung: tanggal */}
                 <span className="flex justify-center gap-2 items-center">
                     <i className="fa-solid fa-calendar"></i>
                     <p>{formattedDate}</p>
                 </span>
             </td>
-            <td> {/* status */}
+            <td>{/* status */}
                 <div className={''}>
                     {Status}
                 </div>
