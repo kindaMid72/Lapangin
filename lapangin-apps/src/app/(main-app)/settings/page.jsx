@@ -1,10 +1,12 @@
 
+// components
+import SettingPage from "@/features/Settings/SettingPage"
 
 export default () => {
     
 
     return (<>
-        this is setting
+        <SettingPage/>
     
     </>)
 

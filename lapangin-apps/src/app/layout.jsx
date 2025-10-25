@@ -1,6 +1,9 @@
+
+
+// component
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import '@fortawesome/fontawesome-free/css/all.min.css';
 
 // fonts
 const geistSans = Geist({
@@ -21,7 +24,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="dark bg-white dark:bg-gray-800">
+    <html lang="en" className="dark bg-white dark:bg-gray-800" suppressHydrationWarning={true}>
       <body
         className={`roboto-mono-regular antialiased bg-white dark:bg-gray-800`}
       >

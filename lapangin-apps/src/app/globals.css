@@ -25,6 +25,30 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* animation */
+
+@theme{
+  --animate-slide-left: slide-left 0.4s ease-in-out forwards;
+  --animate-slide-right: slide-right 0.4s ease-in-out forwards;
+
+
+  @keyframes slide-left{
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+  @keyframes slide-right{
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+}
 
 
 
