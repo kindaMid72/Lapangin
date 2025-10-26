@@ -26,11 +26,11 @@ export default function Venues() {
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800 font-mono">
             <div className=" min-w-2xl p-8 bg-white dark:bg-gray-900 rounded-xl shadow-lg flex flex-col">
                 <h1 className="text-4xl font-extrabold text-center mb-2">Select Your Venue</h1>
-                <p className="text-gray-600 text-center mb-8">Choose a venue to manage.</p>
+                <p className="text-gray-600 text-center mb-8">Choose a venue to manage.<br></br>You can only enter an existed vanue by invitations.</p>
 
                 <div className="flex flex-col items-center justify-center w-full gap-6">
                     {venues.map((venue) => (
-                        <div key={venue.id} className="border w-full rounded-lg p-4 flex flex-col items-center hover:shadow-md transition-shadow">
+                        <div key={venue.id} className="border w-full cursor-pointer rounded-lg dark:border-gray-600  p-4 flex flex-col items-center hover:shadow-md transition-shadow">
                             <h2 className="text-xl font-bold mb-4">{venue.name}</h2>
                             <button
                                 onClick={() => handleSelectVenue(venue.id)}
@@ -40,6 +40,11 @@ export default function Venues() {
                             </button>
                         </div>
                     ))}
+                    <div onClick={() => {
+                        router.push(`/${params.user_id}/new_vanue`)
+                    }} className="border-1 border-gray-700 w-full font-extrabold cursor-pointer rounded-lg p-4 flex flex-col items-center hover:shadow-md hover:bg-green-800 hover:border-transparent transition-all duration-100 ease-in-out hover:text-white">
+                        <p>Create New Values</p>
+                    </div>
                 </div>
             </div>
         </div>

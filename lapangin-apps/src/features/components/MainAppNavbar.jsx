@@ -17,7 +17,7 @@ export default function NavBar() {
 
     // handler
     const handleNavigate = (path) => {
-        router.replace(`/${user_id}/${path}`);
+        router.push(`/${user_id}/${path}`);
         setSelectedMenu(path);
     }
 
