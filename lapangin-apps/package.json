@@ -15,6 +15,7 @@
     "react-router-dom": "^7.9.4"
   },
   "devDependencies": {
+    "@supabase-js/source": "github:supabase/supabase-js",
     "@tailwindcss/postcss": "^4",
     "tailwindcss": "^4"
   }
