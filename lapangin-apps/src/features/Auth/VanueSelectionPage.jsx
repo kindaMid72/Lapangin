@@ -1,9 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 export default function Venues() {
     const router = useRouter();
+    const params = useParams();
 
     // TODO: replace this with real data fetching
     const venues = [
@@ -15,9 +16,10 @@ export default function Venues() {
 
     const handleSelectVenue = (venueId) => {
         console.log(`Venue ${venueId} selected`);
+        const { user_id } = params;
         // Here you would typically store the selected venue in a global state (Context, Redux, Zustand)
         // and then navigate to the main dashboard or the next step.
-        router.push('/dashboard'); // Example navigation
+        router.replace(`/${user_id}/dashboard`); // Example navigation
     };
 
     return (
