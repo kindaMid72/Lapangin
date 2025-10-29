@@ -6,7 +6,7 @@ export default function Venues() {
     const router = useRouter();
     const params = useParams();
 
-    // TODO: replace this with real data fetching
+    // TODO: replace this with real data fetching, and subscribe for changes from database
     const venues = [
         { id: 1, name: "Futsal Hall A", imageUrl: "/placeholder.svg" },
         { id: 2, name: "Badminton Court 1", imageUrl: "/placeholder.svg" },
@@ -23,7 +23,7 @@ export default function Venues() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800 font-mono">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800 font-mono p-1">
             <div className=" min-w-2xl p-8 bg-white dark:bg-gray-900 rounded-xl shadow-lg flex flex-col">
                 <h1 className="text-4xl font-extrabold text-center mb-2">Select Your Venue</h1>
                 <p className="text-gray-600 text-center mb-8">Choose a venue to manage.<br></br>You can only enter an existed vanue by invitations.</p>
@@ -42,7 +42,7 @@ export default function Venues() {
                     ))}
                     <div onClick={() => {
                         router.push(`/${params.user_id}/new_vanue`)
-                    }} className="border-1 border-gray-700 w-full font-extrabold cursor-pointer rounded-lg p-4 flex flex-col items-center hover:shadow-md hover:bg-green-800 hover:border-transparent transition-all duration-100 ease-in-out hover:text-white">
+                    }} className="border-1 border-gray-700 w-full text-xl font-extrabold cursor-pointer rounded-lg p-4 flex flex-col items-center hover:shadow-md hover:bg-green-800 hover:border-transparent transition-all duration-100 ease-in-out hover:text-white">
                         <p>Create New Values</p>
                     </div>
                 </div>
