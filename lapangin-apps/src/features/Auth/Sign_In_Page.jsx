@@ -4,12 +4,12 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import { createClientInstance } from '@/utils/supabase/client';
+import { createClient } from '../../utils/supabase/client';
 
 // Memberi nama pada komponen adalah praktik yang baik untuk debugging.
 export default function SignInPage() {
     // instance
-    const supabase = createClientInstance();
+    const supabase = createClient();
 
     // state
     const router = useRouter();

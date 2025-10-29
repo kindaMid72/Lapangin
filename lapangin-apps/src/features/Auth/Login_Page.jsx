@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 // Impor helper client yang baru Anda buat
-import { createClientInstance } from '@/utils/supabase/client';
+import { createClient } from '../../utils/supabase/client';
 
 export default function Login_Page() {
     const router = useRouter();
     // Panggil fungsi untuk mendapatkan instance Supabase
-    const supabase = createClientInstance();
+    const supabase = createClient();
 
     // state
     const [email, setEmail] = useState('');
