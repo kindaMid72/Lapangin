@@ -24,15 +24,20 @@ export default function VanueCreate() {
     return (
         <>
             <div>
-                <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800 font-mono">
-                    <div className="w-full max-w-2xl p-8 bg-white dark:bg-gray-900 rounded-xl shadow-lg">
-                        <div className=" flex justify-start items-center">
-                            <i className="fa-solid fa-xmark text-xl hover:text-red-400 cursor-pointer transition-colors duration-100 ease-in-out" onClick={() => router.push(`/${user_id}`)} ></i>
+                <div className="flex flex-col items-center justify-center min-h-screen md:w-full bg-gray-100 dark:bg-gray-800 font-mono">
+                    <div className="w-full max-w-2xl md:min-w-full p-8 md:p-0 bg-white md:h-screen dark:bg-gray-900 dark:md:bg-gray-800 rounded-xl shadow-lg md:flex md:rounded-none md:justify-between md:shadow-none ">
+                        {/* escape button */}
+                        <div className="flex flex-col md:items-center md:min-w-[400px] md:p-8 dark:md:bg-gray-900 md:rounded-r-2xl md:[box-shadow:0px_0px_10px_#3b474e]">
+                            <div className=" flex justify-start items-center md:w-full">
+                                <i className="fa-solid fa-xmark text-xl hover:text-red-400 cursor-pointer transition-colors duration-100 ease-in-out" onClick={() => router.push(`/${user_id}`)} ></i>
+                            </div>
+                            <div className="flex flex-col items-center justify-center md:flex-1 md:mx-10">
+                                <h1 className="text-4xl font-extrabold text-center mb-2">Create a New Venue</h1>
+                                <p className="text-gray-600 text-center mb-8">Fill in the details to get started.</p>
+                            </div>
                         </div>
-                        <h1 className="text-4xl font-extrabold text-center mb-2">Create a New Venue</h1>
-                        <p className="text-gray-600 text-center mb-8">Fill in the details to get started.</p>
 
-                        <form onSubmit={handleCreateVenue} className="space-y-6">
+                        <form onSubmit={handleCreateVenue} className="space-y-6 md:p-8 md:flex md:flex-col md:items-center md:justify-center md:w-full md:[&>div]:w-full">
                             <div>
                                 <label htmlFor="venueName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Venue Name</label>
                                 <input type="text" id="venueName" value={venueName} onChange={(e) => setVenueName(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="e.g., Lapangan Futsal Ceria" required />

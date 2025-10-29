@@ -49,6 +49,8 @@ export async function updateSession(request) {
     '/home',
     '/About',
     '/Features',
+    '/reset_password',
+    '/contact',
   ];
 
   const isPublicRoute = publicRoutes.some(path => request.nextUrl.pathname === path || (path !== '/' && request.nextUrl.pathname.startsWith(path)));
