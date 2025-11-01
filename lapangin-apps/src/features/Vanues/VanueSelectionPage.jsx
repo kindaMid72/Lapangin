@@ -1,14 +1,40 @@
 "use client";
-
+// libs
 import { useParams, useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+
+// store
 import useAuthStore from "@/shared/stores/authStore";
 
 export default function Venues() {
-    const { session } = useAuthStore();
-    console.log(session);
+    const { session, fetchSession } = useAuthStore();
 
     const router = useRouter();
     const params = useParams();
+
+    // fetching handler
+    useEffect(() => {
+        // get token, then fetch venues for that user
+        // get(name, venue_id, role(for that user))
+        const token = session?.access_token;
+        if (token){
+            axios.get(`${process.env.NEXT_PUBLIC_SERVER_API_URL}/user_venues/get_all_user_venues`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                // TODO: modify venues container after fetching data
+                console.log(response.data);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+        }else{
+            fetchSession(); // update session, dan biarkan session baru trigger fetching baru
+        }
+    }, [session]); // TODO: subscribe to that user_venues tabel for changes
 
     // TODO: replace this with real data fetching, and subscribe for changes from database
     const venues = [
