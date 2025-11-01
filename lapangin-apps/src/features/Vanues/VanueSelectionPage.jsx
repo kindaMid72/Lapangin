@@ -50,7 +50,7 @@ export default function Venues() {
                     <div onClick={() => {
                         router.push(`/${params.user_id}/new_vanue`)
                     }} className=" md:absolute md:bottom-30 md:left-28 md:w-fit border-1 border-gray-700 w-full text-xl font-extrabold cursor-pointer rounded-lg p-4 flex flex-col items-center hover:shadow-md hover:bg-green-800 hover:border-transparent transition-all duration-100 ease-in-out hover:text-white">
-                        <p>Create New Values</p>
+                        <p>Create New Vanue</p>
                     </div>
                 </div>
             </div>

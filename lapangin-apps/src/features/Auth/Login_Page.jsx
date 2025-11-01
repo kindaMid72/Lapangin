@@ -7,7 +7,14 @@ import { useState } from 'react';
 // Impor helper client yang baru Anda buat
 import { createClient } from '../../utils/supabase/client';
 
+// store
+import useSessionStore from "@/shared/stores/authStore";
+
 export default function Login_Page() {
+    // store
+    const { session, fetchSession } = useSessionStore();
+
+
     const router = useRouter();
     // Panggil fungsi untuk mendapatkan instance Supabase
     const supabase = createClient();

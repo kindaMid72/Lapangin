@@ -1,6 +1,6 @@
 
 // components 
-import VanueCreationPage from "@/features/Auth/VanueCreationPage";
+import VanueCreationPage from "@/features/Vanues/VanueCreationPage";
 
 export default function VanueCreate() {
     return (<>
