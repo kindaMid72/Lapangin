@@ -42,4 +42,6 @@ next-env.d.ts
 
 # node modules
 node_modules
+lapangin-apps/node_modules
+lapangin-APIs/node-modules
 /.pnp
