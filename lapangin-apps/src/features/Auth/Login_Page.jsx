@@ -1,11 +1,14 @@
 "use client"
+/**
+ * FIXME: login fa
+ */
 
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-// Impor helper client yang baru Anda buat
-import { createClient } from '../../utils/supabase/client';
+// Impor createBrowserClient langsung dari @supabase/ssr untuk komponen klien
+import { createClient } from "@/utils/supabase/client";
 
 // store
 import useSessionStore from "@/shared/stores/authStore";
@@ -14,11 +17,9 @@ export default function Login_Page() {
     // store
     const { session, fetchSession } = useSessionStore();
 
-
     const router = useRouter();
     // Panggil fungsi untuk mendapatkan instance Supabase
     const supabase = createClient();
-
     // state
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -35,7 +36,6 @@ export default function Login_Page() {
             password: password
         });
 
-        console.log(data);
         if (error) {
             setError(error.message); // Tampilkan pesan error ke pengguna
             return;
@@ -45,6 +45,7 @@ export default function Login_Page() {
             router.push(`/${userId}`); // Ganti dengan rute tujuan Anda
             router.refresh(); // Penting: refresh untuk memberi tahu server tentang sesi baru
         }
+        fetchSession();
         setEmail('');
         setPassword('');
 

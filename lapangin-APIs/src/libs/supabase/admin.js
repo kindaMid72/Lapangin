@@ -1,7 +1,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 
-export default async function createClient() {
+export default function createAdminInstance() {
   return createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY

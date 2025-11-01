@@ -1,8 +1,12 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import useAuthStore from "@/shared/stores/authStore";
 
 export default function Venues() {
+    const { session } = useAuthStore();
+    console.log(session);
+
     const router = useRouter();
     const params = useParams();
 

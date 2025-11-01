@@ -1,5 +1,6 @@
 
-import createUserInstance from "../../libs/supabase/user.js";
+import getUserId from "../../libs/supabase/getUserId.js";
+import sbAdmin from '../../libs/supabase/admin.js';
 import express from 'express';
 
 /**
@@ -12,7 +13,16 @@ const route = express.Router();
 
 route.post('/create_new_venue', async (req, res) => {
     try{
-        const supabase = createUserInstance(req.headers.authorization);
+        // get user_id, then check token
+        // 1. create userInstance from authorization headers
+        // 2. validate token 
+        // 3. get user id
+        const userId = await getUserId(req.headers.authorization);
+        if(!userId){
+            return res.status(401).json({message: 'invalid token'});
+        }
+
+        const supabase = sbAdmin();
         /**
          * 1. extract venue info from request
          * 2. create new venue instance
@@ -32,9 +42,10 @@ route.post('/create_new_venue', async (req, res) => {
             .insert([ // create a venue with a basic initial data
                 {name: vanueName, address: address, phone: phoneNumber, description: description, slug: slug, is_active: true} 
             ])
-            .select()
-        console.log(error);
-        if (error){
+        
+
+        if (error){ // this is debug session, dont erase that clog
+            console.log('from venuesController:', error);
             return res.status(401).json({message: error.message});
         }
         return res.status(201).json({message: 'vanue creation success: ' + data})
