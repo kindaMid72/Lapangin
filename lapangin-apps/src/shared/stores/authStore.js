@@ -6,7 +6,7 @@ import { create } from 'zustand';
  */
 
 // Gunakan nama yang lebih deskriptif, sesuai dengan yang Anda gunakan di komponen lain.
-const useAuthStore = create((set) => ({
+const useAuthStore = create((set, get) => ({
     session: null,
     isLoading: true, // Tambahkan state untuk loading
 

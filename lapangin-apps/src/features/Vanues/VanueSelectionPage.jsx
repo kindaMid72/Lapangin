@@ -1,54 +1,85 @@
 "use client";
 // libs
-import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+/**
+ * TODO: add skeleton loading to the loading element
+ * TODO: add subscribe to user_venue table for changes
+ * TODO: config new routing system that accept venue ids as part of its path
+ */
 import axios from "axios";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
 
 // store
-import useAuthStore from "@/shared/stores/authStore";
+import useAuthStore from "@/shared/stores/authStore.js";
+import useVenueStore from "@/shared/stores/venueStore.js";
 
 export default function Venues() {
     const { session, fetchSession } = useAuthStore();
+    const { activeVenue, setActiveVenue } = useVenueStore();
+
 
     const router = useRouter();
     const params = useParams();
 
     // state
     const [venues, setVenues] = useState([]); // store active venues for that user
+    const [isLoading, setIsLoading] = useState(true); // Tambahkan state loading
     const [error, setError] = useState(null);
 
     // fetching handler
     useEffect(() => {
-        // get token, then fetch venues for that user
-        // get(name, venue_id, role(for that user))
+        // fetch (venue_name, venue_id, role(user role))
+        // AbortController untuk membatalkan request jika komponen unmount
+        const controller = new AbortController();
+
         const token = session?.access_token;
-        if (token){
-            axios.get(`${process.env.NEXT_PUBLIC_SERVER_API_URL}/user_venues/get_all_user_venues`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
+
+        async function fetchVenues() {
+            if (token) {
+                setIsLoading(true);
+                setError(null);
+                try {
+                    const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_API_URL}/user_venues/get_all_user_venues`, {
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        signal: controller.signal // Kaitkan AbortController
+                    });
+                    const venuesData = Object.values(response?.data.data || {});
+                    setVenues(venuesData);
+                } catch (err) {
+                    if (axios.isCancel(err)) {
+                        console.log('Request canceled:', err.message);
+                    } else {
+                        setError(err.message || "Failed to fetch venues.");
+                        console.error(err);
+                    }
+                } finally {
+                    setIsLoading(false);
                 }
-            })
-            .then(response => {
-                // set venues
-                console.log(response);
-                setVenues([...Object.values(response.data.data)]);
-                console.log([...Object.values(response.data.data)]);
-            })
-            .catch(error => {
-                console.error(error);
-            });
-        }else{
-            fetchSession(); // update session, dan biarkan session baru trigger fetching baru
+            } else {
+                fetchSession(); // update session, dan biarkan session baru trigger fetching baru
+            }
         }
+
+        fetchVenues();
+
+        // Cleanup function
+        return () => controller.abort();
+
     }, [session]); // TODO: subscribe to that user_venues tabel for changes
 
-    const handleSelectVenue = (venueId) => {
-        console.log(`Venue ${venueId} selected`);
+    const handleSelectVenue = (venueId, venueName, role, userId) => {
         const { user_id } = params;
+        console.log(session);
         // Here you would typically store the selected venue in a global state (Context, Redux, Zustand)
         // and then navigate to the main dashboard or the next step.
-        router.replace(`/${user_id}/dashboard`); // Example navigation
+        setActiveVenue({ venueId: venueId, venueName: venueName, userRole: role, userId: user_id });
+
+        router.replace(`/${user_id}/${venueId}/dashboard`);
     };
+
+    if (isLoading) return <div className="flex items-center justify-center min-h-screen opacity-30">Loading venues...</div>;
+    if (error) return <div className="flex items-center justify-center min-h-screen text-red-500">Error: {error}</div>;
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800 font-mono p-1 md:p-0 md:rounded-none ">
@@ -64,7 +95,7 @@ export default function Venues() {
                             <h2 className="text-xl font-bold mb-4 text-nowrap text-ellipsis overflow-hidden w-full">{item.venue_name}</h2>
                             {/* <h3 className=" w-full pb-3 font-[100] font-gray-600 italic text-[0.9em] text-start">{item.role}</h3> */}
                             <button
-                                onClick={() => handleSelectVenue(item.venue_id)}
+                                onClick={() => handleSelectVenue(item.venue_id, item.venue_name, item.role)}
                                 className="w-full bg-green-700 cursor-pointer text-white py-2 px-4 rounded-lg hover:bg-green-800 transition-colors font-semibold"
                             >
                                 Select

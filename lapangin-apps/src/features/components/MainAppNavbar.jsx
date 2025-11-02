@@ -2,8 +2,11 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import useVenueStore from '@/shared/stores/venueStore';
+
 
 export default function NavBar() {
+    const {activeVenue, setActiveVenue} = useVenueStore();
 
     const router = useRouter();
     const params = useParams();
@@ -17,7 +20,9 @@ export default function NavBar() {
 
     // handler
     const handleNavigate = (path) => {
-        router.push(`/${user_id}/${path}`);
+        console.log(activeVenue);
+        const venueId = activeVenue.venue_id;
+        router.push(`/${user_id}/${venueId}/${path}`);
         setSelectedMenu(path);
     }
 
