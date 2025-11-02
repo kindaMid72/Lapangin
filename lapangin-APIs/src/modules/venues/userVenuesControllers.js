@@ -50,7 +50,7 @@ route.get('/get_all_user_venues', async (req, res) => {
             return item;
         })
 
-        return res.status(200).json({message: data});
+        return res.status(200).json({data: data, message: 'success'});
     }catch(err){
         console.error('from userVenuesControllers: ', err);
         return res.status(500).json({message: 'something went wrong'});
