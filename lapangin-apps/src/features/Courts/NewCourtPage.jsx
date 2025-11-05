@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useState } from 'react';
 
 /**
- * FIXME: request failed with error code 401 (access denied)
+ * TODO: buat interceptor untuk setiap request yang memastikan token yang diguanakn valid untuk setiap request ke backend
  */
 export default function NewCourtPage({ show, onClose, onCourtAdded, type }) {
     /**
@@ -112,17 +112,17 @@ export default function NewCourtPage({ show, onClose, onCourtAdded, type }) {
                                 <div>
                                     <label htmlFor="weekdayPrice" className="block mb-1 font-medium text-nowrap">Harga Hari Biasa (Rp)</label>
                                     <input id="weekdayPrice" type="text" value={'Rp. ' + weekdayPrice} onChange={(e) => {
-                                            let value = e.target.value.replace(/\D/g, ''); // Hapus semua non-digit
-                                            value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // Tambah titik setiap 3 digit
-                                            setWeekdayPrice(value);
+                                        let value = e.target.value.replace(/\D/g, ''); // Hapus semua non-digit
+                                        value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // Tambah titik setiap 3 digit
+                                        setWeekdayPrice(value);
                                     }} className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="e.g., 100000" required />
                                 </div>
                                 <div>
                                     <label htmlFor="weekendPrice" className="block mb-1 font-medium text-nowrap">Harga Akhir Pekan (Rp)</label>
                                     <input id="weekendPrice" type="text" value={'Rp. ' + weekendPrice} onChange={(e) => {
-                                            let value = e.target.value.replace(/\D/g, ''); // Hapus semua non-digit
-                                            value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // Tambah titik setiap 3 digit
-                                            setWeekendPrice(value);
+                                        let value = e.target.value.replace(/\D/g, ''); // Hapus semua non-digit
+                                        value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // Tambah titik setiap 3 digit
+                                        setWeekendPrice(value);
                                     }} className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="e.g., 150000" required />
                                 </div>
                             </div>

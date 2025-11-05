@@ -1,4 +1,4 @@
-import { getUserSession } from '@/utils/supabase/client';
+import { getUserSession } from '@/utils/supabase/client.js';
 import { create } from 'zustand';
 
 /**
@@ -8,13 +8,14 @@ import { create } from 'zustand';
 // Gunakan nama yang lebih deskriptif, sesuai dengan yang Anda gunakan di komponen lain.
 const useAuthStore = create((set, get) => ({
     session: null,
-    isLoading: true, // Tambahkan state untuk loading
+    isLoading: false, // Tambahkan state untuk loading
 
     // Buat fungsi async untuk mengambil sesi
     fetchSession: async () => {
         try {
             // Panggil dan tunggu hasil dari getUserSession
-            const { data } = await getUserSession();
+            const { data, error } = await getUserSession();
+            if(error) throw error;
             // Simpan data sesi yang sebenarnya, bukan Promise
             set({ session: data.session, isLoading: false });
         } catch (error) {

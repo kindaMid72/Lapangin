@@ -4,7 +4,7 @@
 import { useState } from 'react';
 
 // components
-import ToggleButton from './components/ToggleButton';
+import ToggleButton from '../components/ToggleButton';
 
 
 export default function PaymentSetting() {

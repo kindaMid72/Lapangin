@@ -3,7 +3,6 @@ import createUserInstance from "../../libs/supabase/user.js"; // ternyata salah 
 
 // this function will check if token(user) given has access to protected resouces
 export default async function checkAdminAccess(authorization, venue_id) {
-
     const sbAdmin = await createAdminInstance();
     const thatUser = await createUserInstance(authorization);
 

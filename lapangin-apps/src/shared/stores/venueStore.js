@@ -4,7 +4,7 @@ import {persist} from 'zustand/middleware';
 const useVenueStore = create(
     persist(
         (set, get) => ({
-        activeVenue: null,
+        activeVenue: null, // name, 
         setActiveVenue: (venue) => { set({ activeVenue: venue }); },
         resetActiveVenue: () => { set({ activeVenue: null }); }
         }),
