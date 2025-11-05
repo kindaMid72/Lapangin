@@ -24,7 +24,7 @@ route.get('/get_all_user_venues', async (req, res) => {
             console.log('from userVenuesController: session not valid');
             return res.status(401).json({message: 'invalid token'});
         }
-        const supabase = sbAdmin();
+        const supabase = await sbAdmin();
         let {data, error} = await supabase
             .from('user_venues')
             .select('venue_id, role')

@@ -68,12 +68,17 @@ export default function Venues() {
 
     }, [session]); // TODO: subscribe to that user_venues tabel for changes
 
-    const handleSelectVenue = (venueId, venueName, role, userId) => {
+    const handleSelectVenue = (venueId, venueName, role) => {
         const { user_id } = params;
-        console.log(session);
         // Here you would typically store the selected venue in a global state (Context, Redux, Zustand)
         // and then navigate to the main dashboard or the next step.
-        setActiveVenue({ venueId: venueId, venueName: venueName, userRole: role, userId: user_id });
+        setActiveVenue({ 
+            venueId: venueId, 
+            venueName: venueName, 
+            userRole: role, 
+            userId: user_id, 
+            userEmail: session.user.email 
+        });
 
         router.replace(`/${user_id}/${venueId}/dashboard`);
     };

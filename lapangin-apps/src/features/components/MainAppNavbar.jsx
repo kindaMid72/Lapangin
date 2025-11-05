@@ -2,10 +2,15 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import useVenueStore from '@/shared/stores/venueStore';
-
+// store
+import useSessionStore from '@/shared/stores/authStore.js';
+import useVenueStore from '@/shared/stores/venueStore.js';
 
 export default function NavBar() {
+
+    // store
+    const { session, fetchSession } = useSessionStore();
+
     const {activeVenue, setActiveVenue} = useVenueStore();
 
     const router = useRouter();
@@ -20,8 +25,7 @@ export default function NavBar() {
 
     // handler
     const handleNavigate = (path) => {
-        console.log(activeVenue);
-        const venueId = activeVenue.venue_id;
+        const venueId = activeVenue.venueId;
         router.push(`/${user_id}/${venueId}/${path}`);
         setSelectedMenu(path);
     }
@@ -35,8 +39,11 @@ export default function NavBar() {
             <li className={`${selectedMenu === 'reports' ? activeClass : inactiveClass} transition-color duration-100 ease-in-out`} onClick={() => handleNavigate('reports')}><i className="fa-solid fa-chart-simple mr-2 "></i>Report</li>
             <li className={`${selectedMenu === 'team' ? activeClass : inactiveClass} transition-color duration-100 ease-in-out`} onClick={() => handleNavigate('team')}><i className="fa-solid fa-people-group mr-2 "></i>Team</li>
             <li className={`${selectedMenu === 'settings' ? activeClass : inactiveClass} transition-color duration-100 ease-in-out`} onClick={() => handleNavigate('settings')}><i className="fa-solid fa-gear mr-2 "></i>Settings</li>
-            <div className='flex flex-1 justify-end items-center gap-2 mr-2'>
-                <h3>{'Sosok Hitam'}</h3>
+            <div className='flex flex-1 justify-end items-center gap-2 mr-2 '>
+                <div>
+                    <h3 className='w-20 overflow-hidden text-ellipsis text-nowrap '>{activeVenue.userEmail}</h3>
+                    <h2 className='w-20 overflow-hidden text-ellipsis text-nowrap text-[0.8em] font-extralight'>{activeVenue.userRole}</h2> {/* role section */}
+                </div>
                 <div className='overflow-hidden rounded-full size-[35px] bg-gray-200'>
                     <img src='/sosok_hitam.png' className='' ></img>
                 </div>
