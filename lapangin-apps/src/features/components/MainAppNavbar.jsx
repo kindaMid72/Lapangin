@@ -1,6 +1,6 @@
 "use client"
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // store
 import useSessionStore from '@/shared/stores/authStore.js';
@@ -9,9 +9,9 @@ import useVenueStore from '@/shared/stores/venueStore.js';
 export default function NavBar() {
 
     // store
-    const { session, fetchSession } = useSessionStore();
+    const { session } = useSessionStore();
 
-    const {activeVenue, setActiveVenue} = useVenueStore();
+    const { activeVenue, setActiveVenue } = useVenueStore();
 
     const router = useRouter();
     const params = useParams();
@@ -30,6 +30,10 @@ export default function NavBar() {
         setSelectedMenu(path);
     }
 
+    useEffect(() => {
+        
+    }, [session]);
+
     return (
         <ul className="flex flex-wrap gap-4 light:bg-slate-100 items-center dark:bg-slate-900 [&_li]:hover:bg-green-700 [&_li]:cursor-pointer text-[1em] p-2 [&_li]:font-mono [&_li]:text-[1em] rounded-b-xl">
             <li className="px-3 py-1 hover:!bg-transparent text-green-500 rounded-lg !font-[900] !text-2xl ">Lapangin</li>
@@ -40,10 +44,14 @@ export default function NavBar() {
             <li className={`${selectedMenu === 'team' ? activeClass : inactiveClass} transition-color duration-100 ease-in-out`} onClick={() => handleNavigate('team')}><i className="fa-solid fa-people-group mr-2 "></i>Team</li>
             <li className={`${selectedMenu === 'settings' ? activeClass : inactiveClass} transition-color duration-100 ease-in-out`} onClick={() => handleNavigate('settings')}><i className="fa-solid fa-gear mr-2 "></i>Settings</li>
             <div className='flex flex-1 justify-end items-center gap-2 mr-2 '>
-                <div>
-                    <h3 className='w-20 overflow-hidden text-ellipsis text-nowrap '>{activeVenue.userEmail}</h3>
-                    <h2 className='w-20 overflow-hidden text-ellipsis text-nowrap text-[0.8em] font-extralight'>{activeVenue.userRole}</h2> {/* role section */}
-                </div>
+                {session?.user ? ( // session bisajadi belum ada saat page di load, jadi gunakan implementasi ini
+                    <div>
+                        <h3 className='w-20 overflow-hidden text-ellipsis text-nowrap '>{session.user.email}</h3>
+                        <h2 className='w-20 overflow-hidden text-ellipsis text-nowrap text-[0.8em] font-extralight'>{activeVenue?.userRole}</h2> {/* role section */}
+                    </div>
+                ) : (
+                    <div className='w-20 h-6 bg-gray-700 rounded animate-pulse'></div> // Tampilkan skeleton loading jika sesi belum ada
+                )}
                 <div className='overflow-hidden rounded-full size-[35px] bg-gray-200'>
                     <img src='/sosok_hitam.png' className='' ></img>
                 </div>

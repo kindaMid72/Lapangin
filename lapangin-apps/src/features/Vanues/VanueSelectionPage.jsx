@@ -1,5 +1,8 @@
 "use client";
 // libs
+import api from "@/utils/axiosClient/axiosInterceptor.js";
+
+
 /**
  * TODO: add skeleton loading to the loading element
  * TODO: add subscribe to user_venue table for changes
@@ -40,8 +43,7 @@ export default function Venues() {
                 setIsLoading(true);
                 setError(null);
                 try {
-                    const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_API_URL}/user_venues/get_all_user_venues`, {
-                        headers: { 'Authorization': `Bearer ${token}` },
+                    const response = await api.get(`/user_venues/get_all_user_venues`, {
                         signal: controller.signal // Kaitkan AbortController
                     });
                     const venuesData = Object.values(response?.data.data || {});
@@ -75,7 +77,7 @@ export default function Venues() {
         setActiveVenue({ 
             venueId: venueId, 
             venueName: venueName, 
-            userRole: role, 
+            userRole: role,
             userId: user_id, 
             userEmail: session.user.email 
         });

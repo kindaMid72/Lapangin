@@ -1,11 +1,16 @@
 'use client';
 
+/**
+ * FIXME: fetch court error
+ */
+
 // utils
 import api from '@/utils/axiosClient/axiosInterceptor.js';
 
 // store
 import useVenueStore from '@/shared/stores/venueStore';
-import useSessionStore from '@/shared/stores/authStore';
+import useSessionStore from '@/shared/stores/authStore'; 
+import useCourtStore from '@/shared/stores/courtStore';
 
 import axios from 'axios';
 import { useEffect, useState } from 'react';
@@ -16,17 +21,44 @@ import NewCourtPage from "./NewCourtPage";
 import EditCourtPage from './courtEditPage';
 import CourtSchedulePage from './CourtSchedulePage.jsx';
 
+// this function will return all court metadata for this venue
+/** ON EDIT, set:
+ * 1. court name
+ * 2. court duration (30, 60) hanya hari yang belum di generate slotnya yang akan bisa di edit, (slot yang sudah di generate berada paling lama 2 minggu)
+ * 3. court capacity 
+ * 4. court image (not yet)
+ * 5. weekday slot price
+ * 6. weekend slot price
+ * 7. availability rules for every day of week (monday to sunday), user can config open and close time for each day
+ * 8. court active (true or false, use toggle button)
+ * 
+ */
+
+/** ON ATUR JADWAL, set:
+ * - show date selection
+ *      - for every date, show availability from slots instance
+ *      - if slot not yet genereated, return message, not yet generated
+ * - add option to block date (and unblock) (no activity will accured that day), first check if there is a ordered slots there
+ * -
+ */
+
 export default function CourtsPage() {
     // stores
     const { activeVenue } = useVenueStore();
     const { session, fetchSession } = useSessionStore();
+    const {
+        courts, // all court store here
+        setCourt, // set specific court, use after update occured
+        setAllCourt // replace all court with new data from database, used after fetch triggered from database (update occurred)
+    } = useCourtStore();
+
+
 
     // local state
     const [showNewCourtModal, setShowNewCourtModal] = useState(false);
     const [showEditCourtModal, setShowEditCourtModal] = useState(false);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [selectedCourt, setSelectedCourt] = useState(null);
-    const [courts, setCourts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
     const fetchCourts = async () => {
@@ -36,33 +68,20 @@ export default function CourtsPage() {
 
     useEffect(() => {
         // fetch all court for this venue
-        fetchSession(); // update the session for each request
-        fetchCourts();
         
         async function fetchCourts(){
-            // this function will return all court metadata for this venue
-            /** ON EDIT, set:
-             * 1. court name
-             * 2. court duration (30, 60) hanya hari yang belum di generate slotnya yang akan bisa di edit, (slot yang sudah di generate berada paling lama 2 minggu)
-             * 3. court capacity 
-             * 4. court image (not yet)
-             * 5. weekday slot price
-             * 6. weekend slot price
-             * 7. availability rules for every day of week (monday to sunday), user can config open and close time for each day
-             * 8. court active (true or false, use toggle button)
-             * 
-             */
-
-            /** ON ATUR JADWAL, set:
-             * - show date selection
-             *      - for every date, show availability from slots instance
-             *      - if slot not yet genereated, return message, not yet generated
-             * - add option to block date (and unblock) (no activity will accured that day), first check if there is a ordered slots there
-             * -
-             */
+            try{
+                const response = await api.get(`/court/get_all_courts/${activeVenue.venueId}`)
+                // FIXME: fetch court error, again
+                console.log(response);
+            }catch(err){
+                console.log(err);
+            }
         }
 
-    }, [activeVenue]);
+        fetchCourts();
+
+    }, [activeVenue]); // subscribe for change in database, implement later on
 
     const handleEditClick = (court) => {
         setSelectedCourt(court);
@@ -86,7 +105,7 @@ export default function CourtsPage() {
                 <button onClick={() => setShowNewCourtModal(true)} className="border-2 rounded-xl px-3 p-1 bg-green-800 font-extrabold border-transparent hover:bg-green-700 transition-colors duration-300 ease-in-out">+ Tambah Lapangan</button>
             </div>
             <div className="flex justify-start flex-wrap gap-4 m-4">
-                {courts.map(court => (
+                {Object.values(courts).map(court => (
                     <CourtCard
                         key={court.id}
                         court={court}
