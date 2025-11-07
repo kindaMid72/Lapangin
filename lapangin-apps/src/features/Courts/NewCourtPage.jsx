@@ -2,11 +2,11 @@
 import useAuthStore from '@/shared/stores/authStore';
 import useVenueStore from '@/shared/stores/venueStore';
 import axios from 'axios';
-import { useState } from 'react';
+import React, { useState, useEffect, useRef} from 'react';
 
-/**
- * TODO: buat interceptor untuk setiap request yang memastikan token yang diguanakn valid untuk setiap request ke backend
- */
+
+import api from '@/utils/axiosClient/axiosInterceptor.js';
+
 export default function NewCourtPage({ show, onClose, onCourtAdded, type }) {
     /**
      * 1. court name
@@ -20,6 +20,7 @@ export default function NewCourtPage({ show, onClose, onCourtAdded, type }) {
     // Global state
     const { activeVenue } = useVenueStore();
     const { session, fetchSession } = useAuthStore();
+    const focusRef = useRef(null);
 
     // state
     const [courtName, setCourtName] = useState('');
@@ -36,34 +37,42 @@ export default function NewCourtPage({ show, onClose, onCourtAdded, type }) {
     const [error, setError] = useState(null);
 
     // handler
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (focusRef.current && !focusRef.current.contains(event.target)) {
+                onClose(); // check if the focus in between the ref children or its self, if not, navigate close
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [focusRef]);
+
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
         await fetchSession(); // make sure session has a valid token for request
         // Validasi input dasar
-        const finalWeekDayPrice = weekdayPrice.replace(/\D/g, ''); // Hapus semua non-digit
-        const finalWeekendPrice = weekendPrice.replace(/\D/g, ''); // Hapus semua non-digit
         if (!courtName || !capacity || !weekdayPrice.length === 0 || !weekendPrice.length === 0 || !weekdayOpenTime || !weekdayCloseTime || !weekendOpenTime || !weekendCloseTime) {
             setError('Harap isi semua field yang wajib diisi.');
             return;
         }
         setIsLoading(true);
         try {
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_API_URL}/court/create_new_court`,
+            const response = await api.post(`/court/create_new_court`,
                 {
                     venue_id: activeVenue.venueId,
                     name: courtName,
                     capacity: parseInt(capacity, 10),
                     slot_duration_minutes: parseInt(duration, 10),
-                    weekday_slot_price: finalWeekDayPrice,
-                    weekend_slot_price: finalWeekendPrice,
+                    weekday_slot_price: weekdayPrice,
+                    weekend_slot_price: weekendPrice,
                     open_time: weekdayOpenTime, // Menggunakan satu format untuk semua hari
                     close_time: weekdayCloseTime, // ini akan bisa di ubah kedepannya, edit custom open time di edit di page edit court
-                },
-                {
-                    headers: {
-                        'Authorization': `Bearer ${session.access_token}`
-                    }
                 }
             );
 
@@ -79,13 +88,14 @@ export default function NewCourtPage({ show, onClose, onCourtAdded, type }) {
     };
 
 
+    if(!show) return null;
 
     return (<>
-        <div className='fixed z-39 h-full w-full bg-gray-900 opacity-50'>
+        <div className='fixed z-39 h-full w-full bg-gray-900 opacity-70' onClick={onClose}>
             {/* this is for background overlay */}
         </div>
         <div className="fixed z-40 pt-25 pb-5 inset-0 w-fulll h-full overflow-auto bg-gray-transparent flex justify-center items-center ">
-            <div className='bg-gray-800 min-w-fit text-white p-8 rounded-xl shadow-lg w-full max-w-md relative'>
+            <div ref={focusRef} className='bg-gray-800 min-w-fit text-white p-8 rounded-xl shadow-lg w-full max-w-md relative'>
                 <button onClick={onClose} disabled={isLoading} className="absolute top-4 right-6 text-4xl hover:text-red-500 transition-colors disabled:text-gray-500">&times;</button>
                 <h2 className="flex text-2xl font-bold mb-6 text-center">Tambah Lapangan Baru</h2>
                 <form onSubmit={handleSubmit} className="space-y-4 flex flex-col md:flex-row md:gap-5">
@@ -111,18 +121,14 @@ export default function NewCourtPage({ show, onClose, onCourtAdded, type }) {
                             <div className='flex flex-col'>
                                 <div>
                                     <label htmlFor="weekdayPrice" className="block mb-1 font-medium text-nowrap">Harga Hari Biasa (Rp)</label>
-                                    <input id="weekdayPrice" type="text" value={'Rp. ' + weekdayPrice} onChange={(e) => {
-                                        let value = e.target.value.replace(/\D/g, ''); // Hapus semua non-digit
-                                        value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // Tambah titik setiap 3 digit
-                                        setWeekdayPrice(value);
+                                    <input id="weekdayPrice" type="number" value={weekdayPrice} onChange={(e) => {
+                                        setWeekdayPrice(e.target.value);
                                     }} className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="e.g., 100000" required />
                                 </div>
                                 <div>
                                     <label htmlFor="weekendPrice" className="block mb-1 font-medium text-nowrap">Harga Akhir Pekan (Rp)</label>
-                                    <input id="weekendPrice" type="text" value={'Rp. ' + weekendPrice} onChange={(e) => {
-                                        let value = e.target.value.replace(/\D/g, ''); // Hapus semua non-digit
-                                        value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // Tambah titik setiap 3 digit
-                                        setWeekendPrice(value);
+                                    <input id="weekendPrice" type="number" value={weekendPrice} onChange={(e) => {
+                                        setWeekendPrice(e.target.value);
                                     }} className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="e.g., 150000" required />
                                 </div>
                             </div>
@@ -131,7 +137,7 @@ export default function NewCourtPage({ show, onClose, onCourtAdded, type }) {
                     </div>
 
                     {/* availability section */}
-                    <div className='h-fit flex flex-col'>
+                    <div className='flex-1 flex flex-col'>
                         <div className="border-t md:border-t-0 border-gray-600 p-0">
                             <h3 className="text-lg font-semibold mb-3 text-center md:hidden">Jam Operasional</h3>
                             <div className="space-y-2">
@@ -150,13 +156,18 @@ export default function NewCourtPage({ show, onClose, onCourtAdded, type }) {
                             </div>
                         </div>
 
-                        <div className='flex-1 flex flex-col justify-center items-end '>
-                            {error && <p className="text-red-400 text-sm text-center pt-4 md:pt-18">{error}</p>}
-                            <div className="flex justify-end gap-4 ">
-                                <button type="button" onClick={onClose} disabled={isLoading} className="px-4 py-2 rounded-xl bg-gray-600 hover:bg-gray-500 transition-colors">Batal</button>
-                                <button type="submit" disabled={isLoading} className="px-4 py-2 rounded-xl bg-green-700 hover:bg-green-600 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed">
-                                    {isLoading ? 'Menyimpan...' : 'Simpan Lapangan'}
-                                </button>
+                        <div className='flex-1 flex flex-col justify-center items-end'>
+                            <div className='pt-0 flex-1 flex flex-col'>
+                                <div className='flex-1 flex items-end justify-center min-h-8'>
+                                    {error && <p className="text-red-400 text-sm text-center py-2">{error}</p>}
+                                </div>
+                                <div className=" flex  justify-center gap-4 pb-4">
+                                    <button type="button" onClick={onClose} disabled={isLoading} className="px-4 py-2 rounded-xl bg-gray-600 hover:bg-gray-500 transition-colors">Batal</button>
+                                    <button type="submit" disabled={isLoading} className="px-4 py-2 rounded-xl bg-green-700 hover:bg-green-600 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed">
+                                        {isLoading ? 'Menyimpan...' : 'Simpan Lapangan'}
+                                    </button>
+                                </div>
+
                             </div>
                         </div>
 

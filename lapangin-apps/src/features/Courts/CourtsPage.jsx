@@ -61,30 +61,39 @@ export default function CourtsPage() {
     const [selectedCourt, setSelectedCourt] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    const fetchCourts = async () => {
-        // TODO: fetch court info for venues from database
-        setIsLoading(false);
-    };
-
-    useEffect(() => {
-        // fetch all court for this venue
-        
-        async function fetchCourts(){
-            try{
-                const response = await api.get(`/court/get_all_courts/${activeVenue.venueId}`)
-                // FIXME: fetch court error, again
-                console.log(response);
-            }catch(err){
-                console.log(err);
-            }
+    async function fetchCourts(){
+        try{
+            setIsLoading(true);
+            await api.get(`/court/get_all_courts/${activeVenue.venueId}`)
+                .then(response => {
+                    console.log(response);
+                    return response.data.data;
+                })
+                .then(data => {
+                    setAllCourt(data);
+                    console.log(courts);
+                })
+                .catch(err => {
+                    console.log(err);
+                })
+                .finally(() => {
+                    setIsLoading(false);
+                });
+        }catch(err){
+            console.log(err);
+        }
+        if(activeVenue === null || activeVenue === undefined || !activeVenue.venueId || activeVenue.venueId === null){
+            return;
         }
 
+    }
+    useEffect(() => {
+        // fetch all court for this venue
         fetchCourts();
-
     }, [activeVenue]); // subscribe for change in database, implement later on
 
     const handleEditClick = (court) => {
-        setSelectedCourt(court);
+        setSelectedCourt(court); // for every action involving court editing, set selected court to that court
         setShowEditCourtModal(true);
     };
 
@@ -100,6 +109,22 @@ export default function CourtsPage() {
 
     return (
         <>
+        <div>
+            {showNewCourtModal && <NewCourtPage 
+                show={showNewCourtModal} 
+                onClose={() => setShowNewCourtModal(false)} 
+                onCourtAdded={fetchCourts} />}
+            
+            {showEditCourtModal && <EditCourtPage
+                court={selectedCourt} // pass selected court
+                show={showEditCourtModal}
+                onClose={() => setShowEditCourtModal(false)}
+                onCourtUpdated={fetchCourts} />}
+            {showScheduleModal && <CourtSchedulePage
+                court={selectedCourt}
+                show={showScheduleModal}
+                onClose={() => setShowScheduleModal(false)} />}
+            
             <div className="flex items-center justify-between pt-5 px-6 py-3">
                 <h1 className="font-bold text-xl flex-1">Kelola Lapangan</h1>
                 <button onClick={() => setShowNewCourtModal(true)} className="border-2 rounded-xl px-3 p-1 bg-green-800 font-extrabold border-transparent hover:bg-green-700 transition-colors duration-300 ease-in-out">+ Tambah Lapangan</button>
@@ -109,21 +134,12 @@ export default function CourtsPage() {
                     <CourtCard
                         key={court.id}
                         court={court}
-                        onEdit={handleEditClick}
-                        onSchedule={handleScheduleClick}
+                        onEdit={handleEditClick} // this is for views
+                        onSchedule={handleScheduleClick} // this is for views
                     />
                 ))}
             </div>
-            {showNewCourtModal && <NewCourtPage show={showNewCourtModal} onClose={() => setShowNewCourtModal(false)} onCourtAdded={fetchCourts} />}
-            {showEditCourtModal && <EditCourtPage
-                court={selectedCourt}
-                show={showEditCourtModal}
-                onClose={() => setShowEditCourtModal(false)}
-                onCourtUpdated={fetchCourts} />}
-            {showScheduleModal && <CourtSchedulePage
-                court={selectedCourt}
-                show={showScheduleModal}
-                onClose={() => setShowScheduleModal(false)} />}
+        </div>
         </>
     );
 }
