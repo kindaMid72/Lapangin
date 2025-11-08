@@ -242,4 +242,35 @@ route.post('/update_court_by_id/:courtId', async (req, res) => {
 
 })
 
+route.delete('/delete_court_by_id/:venueId/:courtId', async (req, res) => {
+    try{
+        // chec user access 
+        const userHasAccess = await checkUserAccess(req.headers.authorization);
+        if(!userHasAccess) res.status(401).json({message: 'access denied, token expired or user didnt have access'});
+
+        // extract data
+        const sbAdmin = await createSupabaseAccess();
+        const courtId = req.params.courtId;
+        const venueId = req.params.venueId;
+
+        // delte court
+        const {data: deletedCourt, error: deleteCourtError} = await sbAdmin
+            .from('courts')
+            .delete()
+            .eq('id', courtId)
+            .eq('venue_id', venueId);
+
+        if(deleteCourtError) {
+            console.log('error from courtControllers: ', deleteCourtError);
+            return res.status(400).json({message: 'something went wrong'});
+        }
+        // delete slot_templates
+
+        return res.status(200).json({message: 'court deleted'}); // send success status
+    }catch(err){
+        console.error('error from courtController:', err);
+        return res.status(500).json({message: 'something went wrong, internal server error'});
+    }
+})
+
 export default route;
