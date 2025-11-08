@@ -20,6 +20,7 @@ import CourtCard from "@/features/Courts/components/CourtCard";
 import NewCourtPage from "./NewCourtPage";
 import EditCourtPage from './courtEditPage';
 import CourtSchedulePage from './CourtSchedulePage.jsx';
+import ConfirmationMessage from '../components/ConfirmationMessage';
 
 // this function will return all court metadata for this venue
 /** ON EDIT, set:
@@ -71,7 +72,6 @@ export default function CourtsPage() {
                 })
                 .then(data => {
                     setAllCourt(data);
-                    console.log(courts);
                 })
                 .catch(err => {
                     console.log(err);

@@ -1,8 +1,7 @@
 'use client';
 import useAuthStore from '@/shared/stores/authStore';
 import useVenueStore from '@/shared/stores/venueStore';
-import axios from 'axios';
-import React, { useState, useEffect, useRef} from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 
 import api from '@/utils/axiosClient/axiosInterceptor.js';
@@ -50,6 +49,19 @@ export default function NewCourtPage({ show, onClose, onCourtAdded, type }) {
         };
     }, [focusRef]);
 
+    const handleTimeChange = (setter, value) => {
+        if (!value) {
+            setter(value);
+            return;
+        }
+        const [hours, minutes] = value.split(':');
+        const minutesNum = parseInt(minutes, 10);
+
+        // Bulatkan menit ke 00 atau 30
+        const newMinutes = minutesNum < 30 ? '00' : '30';
+
+        setter(`${hours}:${newMinutes}`);
+    };
 
 
     const handleSubmit = async (e) => {
@@ -88,13 +100,13 @@ export default function NewCourtPage({ show, onClose, onCourtAdded, type }) {
     };
 
 
-    if(!show) return null;
+    if (!show) return null;
 
     return (<>
-        <div className='fixed z-39 h-full w-full bg-gray-900 opacity-70' onClick={onClose}>
+        <div className='fixed z-45 h-full w-full bg-gray-900 opacity-70' onClick={onClose}>
             {/* this is for background overlay */}
         </div>
-        <div className="fixed z-40 pt-25 pb-5 inset-0 w-fulll h-full overflow-auto bg-gray-transparent flex justify-center items-center ">
+        <div className="fixed z-46 pt-25 pb-5 inset-0 w-fulll h-full overflow-auto bg-gray-transparent flex justify-center items-center ">
             <div ref={focusRef} className='bg-gray-800 min-w-fit text-white p-8 rounded-xl shadow-lg w-full max-w-md relative'>
                 <button onClick={onClose} disabled={isLoading} className="absolute top-4 right-6 text-4xl hover:text-red-500 transition-colors disabled:text-gray-500">&times;</button>
                 <h2 className="flex text-2xl font-bold mb-6 text-center">Tambah Lapangan Baru</h2>
@@ -146,11 +158,11 @@ export default function NewCourtPage({ show, onClose, onCourtAdded, type }) {
                                 <div className="flex gap-4">
                                     <div className="flex-1">
                                         <label htmlFor="openTime" className="block mb-1 text-xs">Buka</label>
-                                        <input id="openTime" type="time" value={weekdayOpenTime} onChange={(e) => setWeekdayOpenTime(e.target.value)} className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500" required />
+                                        <input id="openTime" type="time" value={weekdayOpenTime} onChange={(e) => handleTimeChange(setWeekdayOpenTime, e.target.value)} className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500" required />
                                     </div>
                                     <div className="flex-1">
                                         <label htmlFor="closeTime" className="block mb-1 text-xs">Tutup</label>
-                                        <input id="closeTime" type="time" value={weekdayCloseTime} onChange={(e) => setWeekdayCloseTime(e.target.value)} className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500" required />
+                                        <input id="closeTime" type="time" value={weekdayCloseTime} onChange={(e) => handleTimeChange(setWeekdayCloseTime, e.target.value)} className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500" required />
                                     </div>
                                 </div>
                             </div>

@@ -7,11 +7,17 @@ import thousandNumberSeparator from '@/utils/formatChanger/thousandNumberSeparat
 
 // utils
 import numberToRupiah from '@/utils/formatChanger/thousandNumberSeparator.js';
+import minuteRestriction from '@/utils/inputRestriction/minuteRestriction.js';
+
 
 // stores
 import useVenueStore from '@/shared/stores/venueStore';
 import useSessionStore from '@/shared/stores/authStore';
 import useCourtStore from '@/shared/stores/courtStore';
+
+// components
+import ConfirmationMessage from '../components/ConfirmationMessage.jsx';
+
 
 export default function EditCourtPage({ court, show, onClose, onCourtUpdated }) {
 
@@ -28,9 +34,9 @@ export default function EditCourtPage({ court, show, onClose, onCourtUpdated }) 
     const [weekendPrice, setWeekendPrice] = useState('');
     const [isActive, setIsActive] = useState(true);
     const [availability, setAvailability] = useState([]);
-
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState(false);
 
     // Mengisi form dengan data lapangan yang dipilih saat modal dibuka
     useEffect(() => {
@@ -47,9 +53,21 @@ export default function EditCourtPage({ court, show, onClose, onCourtUpdated }) 
 
     const handleTimeChange = (index, field, value) => {
         const newAvailability = [...availability];
-        newAvailability[index][field] = value;
+        newAvailability[index][field] = minuteRestriction(value);
         setAvailability(newAvailability);
     };
+
+    async function deleteCourtById() {
+        try{
+            setIsLoading(true);
+            await api.delete(`/court/delete_court_by_id/${activeVenue.venueId}/${court.id}`);
+            onCourtUpdated(); // Refresh data di halaman utama
+            setConfirmDelete(false);
+            onClose();// tutup halaman edit
+        }catch(err){
+            console.error(err);
+        }
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -89,8 +107,16 @@ export default function EditCourtPage({ court, show, onClose, onCourtUpdated }) 
 
     return (
         <>
+            {confirmDelete && <ConfirmationMessage
+                title="Konfirmasi Hapus Lapangan"
+                message="Apakah Anda yakin ingin menghapus lapangan ini?"
+                onConfirm={() => {deleteCourtById();}}
+                onCancel={() => {setConfirmDelete(false);}}
+                delayConfirm={true}
+                delayCancel={false}
+            />}
             <div className='fixed inset-0 z-40 bg-gray-900 opacity-50' onClick={onClose}></div>
-            <div className="fixed z-50 top-1/2 left-1/2 overflow-auto scrollbar-hide -translate-x-1/2 -translate-y-1/2 bg-gray-800 text-white p-8 rounded-xl shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="fixed z-48 top-1/2 left-1/2 overflow-auto scrollbar-hide -translate-x-1/2 -translate-y-1/2 bg-gray-800 text-white p-8 rounded-xl shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                 <button onClick={onClose} disabled={isLoading} className="absolute top-4 right-6 text-4xl hover:text-red-500 transition-colors disabled:text-gray-500">&times;</button>
                 <h2 className="text-2xl font-bold mb-6">Edit Lapangan: {court.name}</h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -100,11 +126,18 @@ export default function EditCourtPage({ court, show, onClose, onCourtUpdated }) 
                             <label htmlFor="editCourtName" className="block mb-1 font-medium">Nama Lapangan</label>
                             <input id="editCourtName" type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full p-2 rounded bg-gray-700" required />
                         </div>
-                        <div className="flex flex-col items-start gap-4">
-                            <label className="font-medium">Status Lapangan</label>
-                            <div className='flex gap-3 justify-start'>
-                                <ToggleButton isActive={isActive} onClick={() => setIsActive(!isActive)} />
-                                <span className={isActive ? 'text-green-400' : 'text-red-400'}>{isActive ? 'Aktif' : 'Non-Aktif'}</span>
+                        <div className="flex flex-row items-start gap-4">
+                            <div className='flex flex-col items-start gap-4'>
+                                <label className="font-medium">Status Lapangan</label>
+                                <div className='flex gap-3 justify-start'>
+                                    <ToggleButton isActive={isActive} onClick={() => setIsActive(!isActive)} />
+                                    <span className={isActive ? 'text-green-400' : 'text-red-400'}>{isActive ? 'Aktif' : 'Non-Aktif'}</span>
+                                </div>
+                            </div>
+                            {/* delete button */}
+                            <div className='flex flex-col gap-3 justify-start'> {/* delete session */}
+                                <label className="font-medium">Hapus Lapangan</label>
+                                <button type={'button'} onClick={() => setConfirmDelete(true)} disabled={isLoading} className='px-3 bg-red-700 hover:bg-red-600 rounded-lg w-fit font-extrabold '>Hapus</button>
                             </div>
                         </div>
                         <div>
