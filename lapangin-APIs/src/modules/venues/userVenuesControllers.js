@@ -2,7 +2,6 @@ import express from 'express';
 
 // libs
 import sbAdmin from '../../libs/supabase/admin.js';
-import sbUser from '../../libs/supabase/user.js';
 import getUserId from '../../libs/supabase/getUserId.js';
 
 // utils
@@ -34,7 +33,7 @@ route.get('/get_all_user_venues', async (req, res) => {
             console.log('from userVenuesController:', error);
             return res.status(401).json({message: error.message});
         }
-        // TODO: fetch name from vanues and concat with already fetched data from user_venues
+
         let {data: venueName, error: error2} = await supabase
             .from('venues')
             .select('name')

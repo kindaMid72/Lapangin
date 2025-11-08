@@ -1,12 +1,15 @@
 
 import express from 'express';
-import sbAdmin from '../../libs/supabase/admin.js';
+import createSupabaseAccess from '../../libs/supabase/admin.js';
 import getUserId from "../../libs/supabase/getUserId.js";
 
 /**
- * FIXME: create new vanue, response with 401
+ * 
  */
 // utils
+import checkAdminAccess from '../../middlewares/auth/checkAdminAccess.js';
+import checkUserAccess from '../../middlewares/auth/checkUserAccess.js';
+
 import createSlug from "../../utils/createSlug.js";
 
 const route = express.Router();
@@ -22,7 +25,7 @@ route.post('/create_new_venue', async (req, res) => {
             return res.status(401).json({ message: 'invalid token' });
         }
 
-        const supabase = await sbAdmin();
+        const supabase = await createSupabaseAccess();
         /**
          * 1. extract venue info from request
          * 2. create new venue instance
@@ -83,11 +86,71 @@ route.delete('/delete_venue', async (req, res) => {
      */
 })
 
-route.get('/get_venue_info', async (req, res) => {
-    const supabase = createUserInstance(req);
+route.get('/get_venue_info/:venueId', async (req, res) => {
+    try{
+        const venueId = req.params.venueId;
+        const userHasAccess = await checkAdminAccess(req.headers.authorization, venueId); // only admin or owner who has access
+        if(!userHasAccess) return res.status(401).json({message: 'access denied, token expired or user didnt have access'})
+        
+        // extract data
+        // create admin access
+        const sbAdmin = await createSupabaseAccess();
+
+        // return venue info (name, slug, phone, address, description, metadata(notyet), is_active)
+        const {data: venueData, error: venueFetchError} = await sbAdmin
+            .from('venues')
+            .select('name, slug, phone, address, description, is_active, email')
+            .eq('id', venueId);
+
+        if(venueFetchError) return res.status(400).json({message: 'something went wrong'});
+        return res.status(200).json({message: 'success', data: venueData[0]});
+    }catch(err){
+        console.error('error from venuesControllers: ', err);
+        res.status(500).json({message: 'something went wrong, internal server error'});
+    }
     /**
      * 1. 
      */
+})
+
+route.post('/update_venue_info/:venueId', async (req, res) => {
+    try{
+        const venueId = req.params.venueId;
+        const userHasAccess = await checkAdminAccess(req.headers.authorization, venueId);
+        if(!userHasAccess) return res.status(401).json({message: 'access denied, token expired or user didnt have access'});
+
+        const sbAdmin = await createSupabaseAccess();
+        // (name, slug, phone, address, description, metadata(notyet), is_active, email)
+        const venueName = req.body.name;
+        const slug = createSlug(venueName);
+        const phone = req.body.phone;
+        const address = req.body.address;
+        const description = req.body.description;
+        const is_active = req.body.is_active;
+        const email = req.body.email;
+
+        const {data: updatedVenue, error: updateVenueError} = await sbAdmin
+            .from('venues')
+            .update([
+                {
+                    name: venueName,
+                    slug: slug,
+                    phone: phone,
+                    address: address,
+                    description: description,
+                    is_active: is_active,
+                    email: email
+                }
+            ])
+            .eq('id', venueId);
+        if(updateVenueError) return res.status(400).json({message: 'something went wrong'});
+
+        
+        return res.status(200).json({message: 'success'}); // return success status
+    }catch(err){
+        console.error('error from venueController: ', err);
+        return res.status(500).json({message: 'something went wrong, internal server error? idk either'});
+    }
 })
 
 export default route;

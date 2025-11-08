@@ -5,9 +5,7 @@ import { useState } from 'react'
 
 
 // dynamic setting page
-import OperationalSetting from './OperationalSetting'
 import PaymentSetting from './PaymentSetting'
-import PricSetting from './PriceSetting'
 import VanueSetting from './VanueSetting'
 
 export default function SettingPage() {
@@ -37,16 +35,12 @@ export default function SettingPage() {
         <div> {/* navbar section */}
             <ol className="flex flex-wrap justify-evenly items-center">
                 <li onClick={() => setSelectedSetting('vanue')} className={`${baseTabClass} ${selectedSetting === 'vanue' ? activeTabClass : ''}`}>Vanue</li>
-                <li onClick={() => setSelectedSetting('operational')} className={`${baseTabClass} ${selectedSetting === 'operational' ? activeTabClass : ''}`}>Jam Operasional</li>
-                <li onClick={() => setSelectedSetting('price')} className={`${baseTabClass} ${selectedSetting === 'price' ? activeTabClass : ''}`}>Harga</li>
                 <li onClick={() => setSelectedSetting('payment')} className={`${baseTabClass} ${selectedSetting === 'payment' ? activeTabClass : ''}`}>Pembayaran</li>
             </ol>
         </div>
 
         <div> {/* dynamic setting section */}
             {selectedSetting === 'vanue' && <VanueSetting />}
-            {selectedSetting === 'operational' && <OperationalSetting />}
-            {selectedSetting === 'price' && <PricSetting />}
             {selectedSetting === 'payment' && <PaymentSetting />}
         </div>
 

@@ -30,7 +30,7 @@ export default function PaymentSetting() {
             </div>
         </>)
     }
-
+ 
     return (
         <div className="p-3">
             <div className="rounded-xl bg-gray-300 text-black dark:text-white dark:bg-gray-900 p-4">
