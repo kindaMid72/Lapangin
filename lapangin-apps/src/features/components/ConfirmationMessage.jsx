@@ -1,8 +1,8 @@
 'use client'
 import { useEffect, useState } from "react";
 
-export default ({ title, message, onConfirm, onCancel, delayConfirm = false, delayCancel = false }) => {
-    const [timeLeft, setTimeLeft] = useState(5);
+export default ({ title, message, onConfirm, onCancel, delayConfirm = false, delayCancel = false, confirmColor='red-600', cancelColor='gray-200', delaySecond=5}) => {
+    const [timeLeft, setTimeLeft] = useState(delaySecond);
 
     useEffect(() => {
         // Jalankan hitung mundur hanya jika delayConfirm aktif dan waktu masih tersisa
@@ -33,6 +33,7 @@ export default ({ title, message, onConfirm, onCancel, delayConfirm = false, del
                     <div className="mt-6 flex justify-center gap-4">
                         <button
                             onClick={onCancel}
+                            style={{backgroundColor: `${cancelColor}`}}
                             className="rounded-md bg-gray-200 px-4 py-2 font-semibold text-gray-800 transition-colors hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-100 dark:hover:bg-gray-500"
                         >
                             Cancel
@@ -41,6 +42,7 @@ export default ({ title, message, onConfirm, onCancel, delayConfirm = false, del
                         <button
                             onClick={onConfirm}
                             disabled={delayConfirm && timeLeft > 0}
+                            style={{backgroundColor: `${confirmColor}`}}
                             className="rounded-md bg-red-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-400 dark:disabled:bg-red-800"
                         >
                             {delayConfirm && timeLeft > 0 ? `Confirm (${timeLeft}s)` : 'Confirm'}

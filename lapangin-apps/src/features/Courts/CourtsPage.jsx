@@ -59,15 +59,16 @@ export default function CourtsPage() {
     const [showNewCourtModal, setShowNewCourtModal] = useState(false);
     const [showEditCourtModal, setShowEditCourtModal] = useState(false);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
+
     const [selectedCourt, setSelectedCourt] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
     async function fetchCourts(){
         try{
             setIsLoading(true);
+            if(!activeVenue) return;
             await api.get(`/court/get_all_courts/${activeVenue.venueId}`)
                 .then(response => {
-                    console.log(response);
                     return response.data.data;
                 })
                 .then(data => {

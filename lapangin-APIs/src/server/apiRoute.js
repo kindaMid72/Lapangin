@@ -1,9 +1,12 @@
 import express from 'express';
 
 // import all entry point for every request
-import VanueController from '../modules/venues/venuesControllers.js';
-import UserVenuesController from '../modules/venues/userVenuesControllers.js';
+import AvailabilityExceptionControllers from '../modules/availability/availabilityExceptionControllers.js';
+import AvailabilityController from '../modules/availability/availabilityRulesControllers.js';
 import CourtController from '../modules/courts/courtsControllers.js';
+import UserVenuesController from '../modules/venues/userVenuesControllers.js';
+import VanueController from '../modules/venues/venuesControllers.js';
+
 
 
 
@@ -13,7 +16,9 @@ const route = express.Router();
 route.use('/venue', VanueController);
 route.use('/user_venues', UserVenuesController);
 route.use('/court', CourtController);
-    // TODO: venueCourt route entry point
+route.use('/availabilityRules', AvailabilityController);
+route.use('/availabilityException', AvailabilityExceptionControllers);
+// TODO: venueCourt route entry point
 
 
 export default route;

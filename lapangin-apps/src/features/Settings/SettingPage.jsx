@@ -13,9 +13,6 @@ export default function SettingPage() {
     // state
     const [selectedSetting, setSelectedSetting] = useState('vanue');
 
-
-
-
     // ui handler
 
     function handleSetActiveSetting(e) {
