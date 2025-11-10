@@ -6,8 +6,7 @@ import AvailabilityController from '../modules/availability/availabilityRulesCon
 import CourtController from '../modules/courts/courtsControllers.js';
 import UserVenuesController from '../modules/venues/userVenuesControllers.js';
 import VanueController from '../modules/venues/venuesControllers.js';
-
-
+import SlotAvailability from '../modules/courts/slotAvailability.js';
 
 
 const route = express.Router();
@@ -18,6 +17,7 @@ route.use('/user_venues', UserVenuesController);
 route.use('/court', CourtController);
 route.use('/availabilityRules', AvailabilityController);
 route.use('/availabilityException', AvailabilityExceptionControllers);
+route.use('/courtAvailability', SlotAvailability)
 // TODO: venueCourt route entry point
 
 

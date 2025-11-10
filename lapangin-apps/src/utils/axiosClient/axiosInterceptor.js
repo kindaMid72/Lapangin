@@ -31,7 +31,7 @@ axiosInterceptor.interceptors.request.use(async (config) => {
     // check if the current session is a valid one,
     // if valid, insert authorization header to the request
     // if not, update the session and add new token to authorization header
-    if(!useAuthStore.getState().session?.access_token) await useAuthStore.getState().fetchSession(); // fetch sessio jika tidak ada token aktif
+    // if (!useAuthStore.getState().session?.access_token) await useAuthStore.getState().fetchSession(); // fetch sessio jika tidak ada token aktif
     config.headers.Authorization = `Bearer ${useAuthStore.getState().session?.access_token}`;
     config.headers.withCredentials = true; // insert access token from session store for request
     return config;
@@ -39,8 +39,8 @@ axiosInterceptor.interceptors.request.use(async (config) => {
 
 axiosInterceptor.interceptors.response.use(
     (response) => { // jika response bebas error, langsung teruskan response
-        return response; 
-    }, 
+        return response;
+    },
     async (error) => {
         /**
          * - check if a refresh token attempt had been made before
@@ -50,7 +50,7 @@ axiosInterceptor.interceptors.response.use(
          */
         const originalRequest = error?.config; // get the previous requst
 
-        if (error.response.status === 401 && !originalRequest._retry) { // check if the error cause by invalid token & it is not a retry request
+        if (error.response?.status === 401 && !originalRequest._retry) { // check if the error cause by invalid token & it is not a retry request
             if (isRefreshing) {
                 // if refresh token attempt had been made before, store that request in queRequest
                 return new Promise((resolve, reject) => {

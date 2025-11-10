@@ -36,14 +36,51 @@ export default function CourtSchedulePage({ court, show, onClose }) {
          * 2. slot_template: for slot creation
          * 3. 
          */
+
+        // check current exception for selected date
         getSelectedDateException();
+
+        // fetch slots for selected date
         
+        getSlotsForSelectedDate();
 
     }, [court, isBlocked, selectedDate]);
 
-    async function handleBlockDate() {
+    async function getSlotsForSelectedDate() {
+        try{
+            
+            setIsLoadingSlots(true);
+            // pastikan ada venueId sebelum melakukan request
+            if(!activeVenue || !activeVenue.venueId) return;
+            await api.post('/courtAvailability/get_court_availability_for_given_date', {
+                courtId: court.id,
+                venueId: activeVenue.venueId,
+                date: selectedDate
+            })
+            .then(response => {
+                if(!response?.data?.data) return;
+                // TODO: set slot di sini
+                return response?.data?.data;
+            })
+            .then(data => {
+                console.log(data);
+            })
+            .catch(err => {
+                console.log(err);
+                setError(err.message);
+            })
+            .finally(() => {
+                setIsLoadingSlots(false);
+            })
+        }catch(err){
+            console.log(err);
+        }
+    }
+
+    async function handleExceptionChanges() {
         try{
             setIsLoading(true);
+            if(!activeVenue || !activeVenue.venueId) return;
             await api.post('/availabilityException/upsert_selected_date_exception',{
                 court_id: court.id,
                 venue_id: activeVenue.venueId,
@@ -69,7 +106,7 @@ export default function CourtSchedulePage({ court, show, onClose }) {
             // fetch exception date for selected date
             setIsLoading(true);
             await api.post('/availabilityException/get_selected_date_exception', {
-                venue_id: activeVenue.venue_id,
+                venue_id: activeVenue.venueId,
                 court_id: court.id,
                 date: selectedDate
             })
@@ -101,14 +138,14 @@ export default function CourtSchedulePage({ court, show, onClose }) {
     return (
         <>
             {confirmBlockDate && <ConfirmationMessage
-                    title="Tutup Lapangan di Tanggal ini?"
-                    message="Pelanggan tidak dapat memesan di tanggal ini sampai dibuka kembali."
-                    onConfirm={() => {handleBlockDate(); setConfirmBlockDate(false);}}
+                    title={isBlocked? "Buka Tanggal Ini?": "Tutup Lapangan di Tanggal ini?"}
+                    message={isBlocked? "Pelanggan dapat memesan di tanggal ini.": "Pelanggan tidak dapat memesan di tanggal ini sampai dibuka kembali."}
+                    onConfirm={() => {handleExceptionChanges(); setConfirmBlockDate(false);}}
                     onCancel={() => {setConfirmBlockDate(false)}} // hilangkan tampilan confirmation
                     delayConfirm={isBlocked? false: true} // if current state is blocked, dont show delayed confirmation
                     delayCancel={false}
                     confirmColor={isBlocked? 'green': 'red'}
-                    delaySecond={3}
+                    delaySecond={1}
                 ></ConfirmationMessage>
             }
             <div className='fixed inset-0 z-40 bg-gray-900 opacity-50' onClick={onClose}></div>

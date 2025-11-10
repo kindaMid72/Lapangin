@@ -4,7 +4,7 @@ import createSupabaseAccess from '../../libs/supabase/admin.js';
 import checkUserAccess from '../../middlewares/auth/checkUserAccess.js';
 
 /**
- * FIXME: exception trigger multiple data insertion
+ * 
  */
 
 const route = express.Router();
@@ -14,7 +14,7 @@ route.post('/get_selected_date_exception', async (req, res) => {
     try {
         // req.body: venue_id, court_id, date
         const venueId = req.body.venue_id;
-        const hasAccess = checkUserAccess(req.headers.authorization, venueId);
+        const hasAccess = await checkUserAccess(req.headers.authorization, venueId);
         if (!hasAccess) return res.status(401).json({ message: 'Unauthorized, either token expired or user didnt have access' });
 
         const sbAdmin = await createSupabaseAccess();
@@ -52,7 +52,7 @@ route.post('/upsert_selected_date_exception', async (req, res) => {
         const isClosed = req.body.is_closed;
         const reason = req.body.reason ?? ''; // reason must be a string
         const { error: exceptionError } = await sbAdmin
-            .from('availability_exceptions') // FIXME: insert multiple row (unattended)
+            .from('availability_exceptions')
             .upsert([ 
                 {
                     court_id: courtId,

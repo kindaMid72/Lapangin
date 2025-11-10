@@ -66,7 +66,7 @@ export default function CourtsPage() {
     async function fetchCourts(){
         try{
             setIsLoading(true);
-            if(!activeVenue) return;
+            if(!activeVenue || !activeVenue.venueId) return;
             await api.get(`/court/get_all_courts/${activeVenue.venueId}`)
                 .then(response => {
                     return response.data.data;
