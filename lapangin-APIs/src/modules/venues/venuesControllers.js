@@ -14,7 +14,7 @@ import createSlug from "../../utils/createSlug.js";
 
 const route = express.Router();
 
-route.post('/create_new_venue', async (req, res) => {
+route.post('/create_new_venue', async (req, res) => { // PASS
     try {
         // get user_id, then check token
         // 1. create userInstance from authorization headers
@@ -37,6 +37,7 @@ route.post('/create_new_venue', async (req, res) => {
         const address = req.body.address;
         const phoneNumber = req.body.phoneNumber;
         const description = req.body.description || "";
+        const timezone = req.body.timezone || "Asia/Jakarta";
         const slug = createSlug(vanueName);
 
         // create new venue instance
@@ -49,7 +50,8 @@ route.post('/create_new_venue', async (req, res) => {
                     phone: phoneNumber,
                     description: description,
                     slug: slug,
-                    is_active: true
+                    is_active: true,
+                    timezone: timezone // new 
                 }
             ]).select('id', { count: 'exact' }) // select row that been added at insertion
 
@@ -86,7 +88,7 @@ route.delete('/delete_venue', async (req, res) => {
      */
 })
 
-route.get('/get_venue_info/:venueId', async (req, res) => {
+route.get('/get_venue_info/:venueId', async (req, res) => { // PASS
     try{
         const venueId = req.params.venueId;
         const userHasAccess = await checkAdminAccess(req.headers.authorization, venueId); // only admin or owner who has access
@@ -99,7 +101,7 @@ route.get('/get_venue_info/:venueId', async (req, res) => {
         // return venue info (name, slug, phone, address, description, metadata(notyet), is_active)
         const {data: venueData, error: venueFetchError} = await sbAdmin
             .from('venues')
-            .select('name, slug, phone, address, description, is_active, email')
+            .select('name, slug, phone, address, description, is_active, email, timezone')
             .eq('id', venueId);
 
         if(venueFetchError) return res.status(400).json({message: 'something went wrong'});
@@ -113,7 +115,7 @@ route.get('/get_venue_info/:venueId', async (req, res) => {
      */
 })
 
-route.post('/update_venue_info/:venueId', async (req, res) => {
+route.post('/update_venue_info/:venueId', async (req, res) => { // PASS
     try{
         const venueId = req.params.venueId;
         const userHasAccess = await checkAdminAccess(req.headers.authorization, venueId);
@@ -128,6 +130,8 @@ route.post('/update_venue_info/:venueId', async (req, res) => {
         const description = req.body.description;
         const is_active = req.body.is_active;
         const email = req.body.email;
+        const timezone = req.body.timezone ?? 'Asia/Jakarta'; // default value will be jakarta
+        console.log(req.body);
 
         const {data: updatedVenue, error: updateVenueError} = await sbAdmin
             .from('venues')
@@ -139,7 +143,8 @@ route.post('/update_venue_info/:venueId', async (req, res) => {
                     address: address,
                     description: description,
                     is_active: is_active,
-                    email: email
+                    email: email,
+                    timezone: timezone // this is new
                 }
             ])
             .eq('id', venueId);

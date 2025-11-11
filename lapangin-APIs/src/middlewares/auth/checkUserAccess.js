@@ -21,7 +21,6 @@ export default async function checkUserAccess(authorization, venue_id) {
         .eq('user_id', user.id) // Gunakan user.id yang sudah divalidasi
         .in('role', ['owner', 'admin', 'member', 'staff']); // Periksa apakah perannya adalah admin, owner, atau member
 
-    console.log({kontol: !error && data && data.length > 0});
     // Jika ada error saat query atau tidak ada baris yang cocok (count === 0), maka tidak punya akses
     return !error && data && data.length > 0;
 }

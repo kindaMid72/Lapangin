@@ -7,7 +7,7 @@ const useVenueStore = create(
     persist(
         (set, get) => ({
             activeVenue: null, // venueId, venueName, 
-            venueMatadata: null, // (name, slug, phone, address, description, metadata(notyet), is_active)
+            venueMatadata: null, // (name, slug, phone, address, description, metadata(notyet), is_active, timezone)
             setActiveVenue: (venue) => { set({ activeVenue: venue }); },
             setVenueMetadata: (metadata) => { set({ venueMatadata: metadata }); },
             resetActiveVenue: () => { set({ activeVenue: null }); },

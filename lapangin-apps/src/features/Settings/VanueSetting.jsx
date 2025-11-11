@@ -28,6 +28,9 @@ export default function VanueSetting() {
     const [email, setEmail] = useState('');
     const [description, setDescription] = useState('');
     const [isActive, setIsActive] = useState(false);
+    const [timezone, setTimezone] = useState('');
+
+    const allTimezones = Intl.supportedValuesOf('timeZone');
 
     const [changeOccured, setChangeOccured] = useState(false); // track changes and enable save button if changes occured
 
@@ -42,11 +45,14 @@ export default function VanueSetting() {
             setEmail(venueMatadata?.email ?? '');
             setDescription(venueMatadata?.description ?? '');
             setIsActive(venueMatadata?.is_active ?? '');
+            setTimezone(venueMatadata?.timezone ?? 'Asia/Jakarta');
+            
             setLoading(false);
             return;
+        }else{
+            setLoading(true);
+            getVenueMetadata(); // this will assign venueMetadata from data that been fetch from the database
         }
-        setLoading(true);
-        getVenueMetadata(); // this will assign venueMetadata from data that been fetch from the database
     }, [venueMatadata])
 
     // watch for changes
@@ -57,13 +63,14 @@ export default function VanueSetting() {
             phone !== (venueMatadata?.phone ?? '') ||
             email !== (venueMatadata?.email ?? '') ||
             description !== (venueMatadata?.description ?? '') ||
-            isActive !== (venueMatadata?.is_active ?? ''))
-        ){ // FIXME: ini langusng ke tringger tanpa ada perubahan input dari user dari state awal
+            isActive !== (venueMatadata?.is_active ?? '')) ||
+            timezone !== (venueMatadata?.timezone ?? '')
+        ){
             setChangeOccured(true);
         }else{
             setChangeOccured(false);
         }
-    }, [name, address, phone, email, description, isActive, venueMatadata]);
+    }, [name, address, phone, email, description, isActive, venueMatadata, timezone]);
 
     async function handleSubmit() {
         try{
@@ -74,7 +81,8 @@ export default function VanueSetting() {
                 phone: phone,
                 email: email,
                 description: description,
-                is_active: isActive
+                is_active: isActive,
+                timezone: timezone
             }).then(res => {
                 getVenueMetadata(); // trigger update for venue metadata, this also will trigger update in the page
                 setChangeOccured(false);
@@ -117,6 +125,19 @@ export default function VanueSetting() {
                         <div>
                             <p className="font-semibold">Email</p>
                             <input type='email' onChange={(e) => { setEmail(e.target.value); }} value={email} style={{ width: email?.length + 'ch' }} className="min-w-[10ch] outline-1 rounded-lg p-1 outline-gray-500"></input>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <i className="fa-solid fa-location-dot mt-1"></i>
+                        <div>
+                            <p className="font-semibold">Timezone</p>
+                            <select value={timezone} onChange={(e) => { setTimezone(e.target.value); }}  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-fit h-fit p-2.5 dark:bg-transparent dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
+                                {allTimezones.map(tz => (
+                                    <option className="bg-gray-900 text-white" key={tz} value={tz}>
+                                        {tz}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 

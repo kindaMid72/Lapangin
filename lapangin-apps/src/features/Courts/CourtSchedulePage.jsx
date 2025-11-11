@@ -8,6 +8,7 @@ import ConfirmationMessage from '../components/ConfirmationMessage.jsx';
 // stores
 import useCourtStore from '@/shared/stores/courtStore';
 import useVenueStore from '@/shared/stores/venueStore';
+import { Duru_Sans } from 'next/font/google/index.js';
 
 export default function CourtSchedulePage({ court, show, onClose }) {
 
@@ -19,7 +20,7 @@ export default function CourtSchedulePage({ court, show, onClose }) {
     // states
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [isBlocked, setIsBlocked] = useState(false); // exception for that date
-    const [slots, setSlots] = useState([]);
+    const [slots, setSlots] = useState([]); // array of object (object -> {start_time, end_time, status)
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
@@ -63,7 +64,68 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                 return response?.data?.data;
             })
             .then(data => {
-                console.log(data);
+                /**
+                 * data: 
+                 * nonAvailableSlots: [], <-- {start_time, end_time, status ('free','held','booked','blocked')}
+                 * openTime: "08:00:00",
+                 * closeTime: "20:00:00,
+                 * slotDurationMinutes: 30 or 60, (int)
+                 */
+                const { nonAvailableSlots, openTime, closeTime, slotDurationMinutes } = data; // extract data from response
+
+                // buat slot berdasarkan template slotDurationMinutes
+                // 1. kalkulasi banyak slot yang akan di buat di tanggal itu
+                const openHour = (openTime.split(':')[0]);
+                const closeHour = (closeTime.split(':')[0]);
+                let totalMaximumSlots = (parseInt(closeHour) - parseInt(openHour)) * 2; // if we assume each slots is 30minutes
+
+                const openMinutes = (openTime.split(':')[1]);
+                const closeMinutes = (closeTime.split(':')[1]);
+
+                if(openMinutes == '30' && closeMinutes == '00'){
+                    totalMaximumSlots-=1;
+                }else if(openMinutes == '00' && closeMinutes == '30'){
+                    totalMaximumSlots+=1;
+                }
+                
+                // 2. set slot kosong ke dalam slots
+                const totalSlots = Math.floor(totalMaximumSlots / (slotDurationMinutes / 30)); // div by 1 if 30, div by 2 if 60
+
+                let temp = [];
+                for(let i = parseInt(openHour); i <= parseInt(closeHour); i++){
+                    let start = 0;
+                    // untuk yang pertama, check dulu apakah jadwal buka mulai dari 30 menit, jika iya, set start ke 30
+                    if((openMinutes === '30' && slotDurationMinutes === 60) || (openMinutes === '30' && i === parseInt(openHour))){
+                        start = 30;
+                    }
+                    for(let j = start; j < 60; j += slotDurationMinutes){
+                        const endMinute = j + slotDurationMinutes;
+                        let startTime = `${String(i).padStart(2, '0')}:${String(j).padStart(2, '0')}`;
+                        let endTime = `${j + slotDurationMinutes < 60 ? String(i).padStart(2, '0') : String(i + 1).padStart(2, '0')}:${j + slotDurationMinutes < 60 ? String(j + slotDurationMinutes).padStart(2, '0') : (openMinutes === '30' && slotDurationMinutes === 60 ? '30' : '00')}`;
+                        startTime = new Date(`${selectedDate}T${startTime}`).toISOString();
+                        endTime = new Date(`${selectedDate}T${endTime}`).toISOString();
+
+                        temp.push({
+                            startTimeString: `${String(i).padStart(2, '0')}:${String(j).padStart(2, '0')}`,
+                            // cek jika penambahan menit menyebabkan perubahan jam, jika iya, tambahkan 1 jam di i
+                            // dan untuk menitnya, jika j menciptakan jam baru (j + lompatan >= 60menit), check tempat awal (30 atau 00), dan set di, set 00 jika 30lompatan, set 30 jika 60lompatan                        kondisi jam jadi x:30 setelah lompatan hanya mungkin di step 60 menit
+                            endTimeString: `${j + slotDurationMinutes < 60 ? String(i).padStart(2, '0') : String(i + 1).padStart(2, '0')}:${j + slotDurationMinutes < 60 ? String(j + slotDurationMinutes).padStart(2, '0') : (openMinutes === '30' && slotDurationMinutes === 60 ? '30' : '00')}`,
+                            isBooked: false,
+                            isBlocked: false,
+                            isHold: false,
+                            startTime: startTime,
+                            endTime: endTime
+                        })
+                    }
+                }
+                // hapus jadwal yang kelebihan
+                if(temp.length > totalSlots){
+                    temp.splice(totalSlots);
+                }
+                setSlots(temp);
+
+                // 3. set nonAvailableSlots ke dalam slots, dan berikan mark
+
             })
             .catch(err => {
                 console.log(err);
@@ -72,6 +134,14 @@ export default function CourtSchedulePage({ court, show, onClose }) {
             .finally(() => {
                 setIsLoadingSlots(false);
             })
+        }catch(err){
+            console.log(err);
+        }
+    }
+
+    async function handleSlotChanges(){
+        try{
+
         }catch(err){
             console.log(err);
         }
@@ -169,18 +239,18 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                 </div>
 
                 <div className="flex-grow overflow-y-auto">
-                    {isLoading && <p>Memuat jadwal...</p>}
+                    {isLoadingSlots && <p>Memuat jadwal...</p>}
                     {error && <p className="text-red-400">{error}</p>}
-                    {!isLoading && !error && (
+                    {!isLoadingSlots && !error && (
                         <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
                             {slots.length > 0 ? slots.map(slot => (
                                 <div
-                                    key={slot.id}
-                                    className={`p-2 text-center rounded ${slot.is_booked ? 'bg-yellow-600' : 'bg-green-600'} ${slot.is_blocked ? 'bg-red-800 line-through' : ''}`}
+                                    key={slot.startTime}
+                                    className={`p-2 text-center rounded ${slot.isBooked? 'bg-orange-600' : ''} ${slot.isBlocked ? 'bg-red-800 line-through' : ''} ${slot.isHold ? 'bg-yellow-600' : 'bg-gray-600'}`}
                                 >
-                                    {new Date(slot.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                    {slot.startTimeString}-{slot.endTimeString}
                                 </div>
-                            )) : <p>Tidak ada slot untuk tanggal ini atau belum digenerate.</p>}
+                            )) : <p>Loading...</p>}
                         </div>
                     )}
                 </div>

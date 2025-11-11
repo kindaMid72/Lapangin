@@ -48,7 +48,6 @@ route.post('/create_new_court', async (req, res) => {
             console.error('Error inserting court:', insertCourtError);
             return res.status(400).json({ message: 'Failed to create court', error: insertCourtError.message });
         }
-        console.log(newInsertedCourt);
 
         // 3. create slot_template for that new court
         const { data: newSlotTemplate, error: insertSlotTemplateError } = await sbAdmin
@@ -201,7 +200,16 @@ route.post('/update_court_by_id/:courtId', async (req, res) => {
             if(updateCourtError) return res.status(400).json({message: 'something went wrong'});
             // update availability rules
         const newAvailabilityRules = req.body.availability_rules;
-        
+
+        const {data: setSlotTemplates, error: setSlotTemplateError} = await sbAdmin
+            .from('slot_templates')
+            .update([
+                {
+                    slot_duration_minutes: req.body.slot_duration_minutes
+                }
+            ]).eq('court_id', courtId);
+            if(setSlotTemplateError) return res.status(400).json({message: 'something went wrong'});
+
         await newAvailabilityRules.forEach( async (rule) => {
             try{
                 await sbAdmin

@@ -5,6 +5,9 @@ import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import api from "@/utils/axiosClient/axiosInterceptor.js";
+
+
 // utils
 
 export default function VanueCreate() {
@@ -32,6 +35,10 @@ export default function VanueCreate() {
     const [phone, setPhone] = useState("");
     const [description, setDescription] = useState("");
     const [error, setError] = useState("");
+    // Mendeteksi zona waktu pengguna atau default ke 'Asia/Jakarta'
+    const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Jakarta");
+
+    const allTimezones = Intl.supportedValuesOf('timeZone');
 
     const handleCreateVenue = async (e) => {
         e.preventDefault();
@@ -42,7 +49,7 @@ export default function VanueCreate() {
                 alert("Please wait, session is loading...");
                 return;
             }
-            
+
             // Pastikan sesi (dan token) sudah ada sebelum mengirim request
             if (!session || !session.access_token) {
                 alert("Authentication session not found. Please log in again.");
@@ -50,19 +57,15 @@ export default function VanueCreate() {
             }
             // TODO: Implement API call to create the venue, and navigate to /[user_id]
             // then, trigger update for new vanue in database
-            
+
             // 1. check for valid input, vanue_name, address, and phone number must be not null
-            const response = await axios.post(`${apiURL}/venue/create_new_venue`, // FIXME: something goes realy wrong here
+            const response = await api.post(`/venue/create_new_venue`,
                 {
                     vanueName: venueName,
                     address: address,
                     phoneNumber: phone,
+                    timezone: timezone,
                     description: description
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${session.access_token}`
-                    }
                 }
             )
             // debug section
@@ -91,7 +94,7 @@ export default function VanueCreate() {
                             </div>
                         </div>
 
-                        <form onSubmit={(e) => {handleCreateVenue(e)}} className="space-y-6 md:p-8 md:flex md:flex-col md:items-center md:justify-center md:w-full md:[&>div]:w-full">
+                        <form onSubmit={(e) => { handleCreateVenue(e) }} className="space-y-6 md:p-8 md:flex md:flex-col md:items-center md:justify-start md:w-full md:[&>div]:w-full overflow-auto scrollbar-hide ">
                             <div>
                                 <label htmlFor="venueName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Venue Name</label>
                                 <input type="text" id="venueName" value={venueName} onChange={(e) => setVenueName(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="e.g., Lapangan Futsal Ceria" required />
@@ -103,6 +106,17 @@ export default function VanueCreate() {
                             <div>
                                 <label htmlFor="phone" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Phone Number</label>
                                 <input type="tel" id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="use a valid country code. e.g., +62xxxxxxxx" required />
+                            </div>
+                            {/* timezone picker */}
+                            <div>
+                                <label htmlFor="timezone" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Timezone</label>
+                                <select id="timezone" value={timezone} onChange={(e) => setTimezone(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
+                                    {allTimezones.map(tz => (
+                                        <option key={tz} value={tz}>
+                                            {tz}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div>
                                 <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>

@@ -4,9 +4,7 @@ import api from "@/utils/axiosClient/axiosInterceptor.js";
 
 
 /**
- * TODO: add skeleton loading to the loading element
- * TODO: add subscribe to user_venue table for changes
- * TODO: config new routing system that accept venue ids as part of its path
+ * TODO: timezone stores
  */
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
