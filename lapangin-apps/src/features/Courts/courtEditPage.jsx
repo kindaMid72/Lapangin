@@ -69,7 +69,7 @@ export default function EditCourtPage({ court, show, onClose, onCourtUpdated }) 
         }
     }
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => { 
         e.preventDefault();
         setError(null);
         setIsLoading(true);

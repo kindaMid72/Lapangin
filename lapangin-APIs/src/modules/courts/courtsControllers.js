@@ -244,7 +244,7 @@ route.post('/update_court_by_id/:courtId', async (req, res) => {
 
         // get court id, update all table that got effected by that changes
     } catch (err) {
-        console.log('error from checkAdminAccess: ', err);
+        console.error('error from checkAdminAccess: ', err);
         res.status(500).json({ message: 'something went wrong, internal server error' });
     }
 

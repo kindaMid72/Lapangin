@@ -39,6 +39,7 @@ route.post('/get_court_availability_for_given_date', async (req, res) => {
             .neq('status', 'free')
             .eq('slot_date', date); // FIXME: error here
         if (getNonAvailableSlotsError) return res.status(400).json({ message: 'something went wrong' });
+        console.log(nonAvailableSlots);
 
         const { data: courtOpenCloseTime, error: courtOpenCloseTimeError } = await sbAdmin
             .from('availability_rules')

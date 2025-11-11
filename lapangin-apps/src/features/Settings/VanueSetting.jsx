@@ -1,5 +1,8 @@
 'use client'
 
+/**
+ * FIXME: timezone always set to 'Asia/Jakarta' even tho data fetched from database is different
+ */
 
 // imports
 import { useEffect, useState } from "react";
@@ -16,7 +19,7 @@ import ToggleButton from "../components/ToggleButton";
 
 
 export default function VanueSetting() {
-    const { activeVenue, venueMatadata, setSelectedVenue, getVenueMetadata } = useVenueStore();
+    const { activeVenue, venueMetadata, setSelectedVenue, getVenueMetadata } = useVenueStore();
     const {venue_id, user_id} = useParams();
 
     // state
@@ -41,16 +44,16 @@ export default function VanueSetting() {
     }, [activeVenue]); // trigger update jika activeVenue berubah (user ganti venue)
 
     useEffect(() => {
-        if (venueMatadata) {
-            // set state to the venueMatadata that been fetch before
+        if (venueMetadata) {
+            // set state to the venueMetadata that been fetch before
             // (name, slug, phone, address, description, is_active)
-            setName(venueMatadata?.name ?? '');
-            setAddress(venueMatadata?.address ?? '');
-            setPhone(venueMatadata?.phone ?? '');
-            setEmail(venueMatadata?.email ?? '');
-            setDescription(venueMatadata?.description ?? '');
-            setIsActive(venueMatadata?.is_active ?? '');
-            setTimezone(venueMatadata?.timezone ?? 'Asia/Jakarta');
+            setName(venueMetadata?.name ?? '');
+            setAddress(venueMetadata?.address ?? '');
+            setPhone(venueMetadata?.phone ?? '');
+            setEmail(venueMetadata?.email ?? '');
+            setDescription(venueMetadata?.description ?? '');
+            setIsActive(venueMetadata?.is_active ?? '');
+            setTimezone(venueMetadata?.timezone ?? '');
 
             setLoading(false);
             return;
@@ -59,24 +62,24 @@ export default function VanueSetting() {
             setLoading(true);
             getVenueMetadata(activeVenue.venueId); // this will assign venueMetadata from data that been fetch from the database
         }
-    }, [venueMatadata, activeVenue])
+    }, [venueMetadata, activeVenue])
 
     // watch for changes
     useEffect(() => {
-        if (venueMatadata && (
-            name !== (venueMatadata?.name ?? '') ||
-            address !== (venueMatadata?.address ?? '') ||
-            phone !== (venueMatadata?.phone ?? '') ||
-            email !== (venueMatadata?.email ?? '') ||
-            description !== (venueMatadata?.description ?? '') ||
-            isActive !== (venueMatadata?.is_active ?? '')) ||
-            timezone !== (venueMatadata?.timezone ?? '')
+        if (venueMetadata && (
+            name !== (venueMetadata?.name ?? '') ||
+            address !== (venueMetadata?.address ?? '') ||
+            phone !== (venueMetadata?.phone ?? '') ||
+            email !== (venueMetadata?.email ?? '') ||
+            description !== (venueMetadata?.description ?? '') ||
+            isActive !== (venueMetadata?.is_active ?? '')) ||
+            timezone !== (venueMetadata?.timezone ?? '')
         ){
             setChangeOccured(true);
         }else{
             setChangeOccured(false);
         }
-    }, [name, address, phone, email, description, isActive, venueMatadata, timezone]);
+    }, [name, address, phone, email, description, isActive, venueMetadata, timezone]);
 
     async function handleSubmit() {
         try{

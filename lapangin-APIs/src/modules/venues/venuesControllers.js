@@ -8,7 +8,6 @@ import getUserId from "../../libs/supabase/getUserId.js";
  */
 // utils
 import checkAdminAccess from '../../middlewares/auth/checkAdminAccess.js';
-import checkUserAccess from '../../middlewares/auth/checkUserAccess.js';
 
 import createSlug from "../../utils/createSlug.js";
 
@@ -89,26 +88,26 @@ route.delete('/delete_venue', async (req, res) => {
 })
 
 route.get('/get_venue_info/:venueId', async (req, res) => { // PASS
-    try{
+    try {
         const venueId = req.params.venueId;
         const userHasAccess = await checkAdminAccess(req.headers.authorization, venueId); // only admin or owner who has access
-        if(!userHasAccess) return res.status(401).json({message: 'access denied, token expired or user didnt have access'})
-        
+        if (!userHasAccess) return res.status(401).json({ message: 'access denied, token expired or user didnt have access' })
+
         // extract data
         // create admin access
         const sbAdmin = await createSupabaseAccess();
 
         // return venue info (name, slug, phone, address, description, metadata(notyet), is_active)
-        const {data: venueData, error: venueFetchError} = await sbAdmin
+        const { data: venueData, error: venueFetchError } = await sbAdmin
             .from('venues')
             .select('name, slug, phone, address, description, is_active, email, timezone')
             .eq('id', venueId);
 
-        if(venueFetchError) return res.status(400).json({message: 'something went wrong'});
-        return res.status(200).json({message: 'success', data: venueData[0]});
-    }catch(err){
+        if (venueFetchError) return res.status(400).json({ message: 'something went wrong' });
+        return res.status(200).json({ message: 'success', data: venueData[0] });
+    } catch (err) {
         console.error('error from venuesControllers: ', err);
-        res.status(500).json({message: 'something went wrong, internal server error'});
+        res.status(500).json({ message: 'something went wrong, internal server error' });
     }
     /**
      * 1. 
@@ -116,10 +115,10 @@ route.get('/get_venue_info/:venueId', async (req, res) => { // PASS
 })
 
 route.post('/update_venue_info/:venueId', async (req, res) => { // PASS
-    try{
+    try {
         const venueId = req.params.venueId;
         const userHasAccess = await checkAdminAccess(req.headers.authorization, venueId);
-        if(!userHasAccess) return res.status(401).json({message: 'access denied, token expired or user didnt have access'});
+        if (!userHasAccess) return res.status(401).json({ message: 'access denied, token expired or user didnt have access' });
 
         const sbAdmin = await createSupabaseAccess();
         // (name, slug, phone, address, description, metadata(notyet), is_active, email)
@@ -131,9 +130,8 @@ route.post('/update_venue_info/:venueId', async (req, res) => { // PASS
         const is_active = req.body.is_active;
         const email = req.body.email;
         const timezone = req.body.timezone ?? 'Asia/Jakarta'; // default value will be jakarta
-        console.log(req.body);
 
-        const {data: updatedVenue, error: updateVenueError} = await sbAdmin
+        const { data: updatedVenue, error: updateVenueError } = await sbAdmin
             .from('venues')
             .update([
                 {
@@ -148,13 +146,13 @@ route.post('/update_venue_info/:venueId', async (req, res) => { // PASS
                 }
             ])
             .eq('id', venueId);
-        if(updateVenueError) return res.status(400).json({message: 'something went wrong'});
+        if (updateVenueError) return res.status(400).json({ message: 'something went wrong' });
 
-        
-        return res.status(200).json({message: 'success'}); // return success status
-    }catch(err){
+
+        return res.status(200).json({ message: 'success' }); // return success status
+    } catch (err) {
         console.error('error from venueController: ', err);
-        return res.status(500).json({message: 'something went wrong, internal server error? idk either'});
+        return res.status(500).json({ message: 'something went wrong, internal server error? idk either' });
     }
 })
 
