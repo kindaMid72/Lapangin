@@ -4,7 +4,7 @@ import api from "@/utils/axiosClient/axiosInterceptor.js";
 
 
 /**
- * TODO: timezone stores
+ * FIXME: venue selection got a wrong name, idk why
  */
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ import useVenueStore from "@/shared/stores/venueStore.js";
 
 export default function Venues() {
     const { session, fetchSession } = useAuthStore();
-    const { activeVenue, setActiveVenue } = useVenueStore();
+    const { activeVenue, setActiveVenue, getVenueMetadata } = useVenueStore();
 
 
     const router = useRouter();
@@ -45,6 +45,7 @@ export default function Venues() {
                         signal: controller.signal // Kaitkan AbortController
                     });
                     const venuesData = Object.values(response?.data.data || {});
+                    console.log(venuesData);
                     setVenues(venuesData);
                 } catch (err) {
                     if (axios.isCancel(err)) {
@@ -72,13 +73,15 @@ export default function Venues() {
         const { user_id } = params;
         // Here you would typically store the selected venue in a global state (Context, Redux, Zustand)
         // and then navigate to the main dashboard or the next step.
-        setActiveVenue({ 
-            venueId: venueId, 
-            venueName: venueName, 
+        setActiveVenue({
+            venueId: venueId,
+            venueName: venueName,
             userRole: role,
-            userId: user_id, 
-            userEmail: session.user.email 
+            userId: user_id,
+            userEmail: session.user.email
         });
+        console.log(venueId);
+        getVenueMetadata(venueId);
 
         router.replace(`/${user_id}/${venueId}/dashboard`);
     };
@@ -95,7 +98,7 @@ export default function Venues() {
                 </div>
 
                 <div className="flex flex-col md:py-5 md:flex-row md:flex-wrap md:items-start content-start items-center justify-center w-full gap-6 md:h-full overflow-auto scrollbar-hide">
-                    {venues.map((item) => (
+                    {venues.map((item) => ( // FIXME: data yang di pass ga tepat dengan yang di tampilkan 
                         <div key={item.venue_id} className="border w-full md:w-1/3 cursor-pointer rounded-lg dark:border-gray-600  p-4 flex flex-col items-center hover:shadow-md transition-shadow">
                             <h2 className="text-xl font-bold mb-4 text-nowrap text-ellipsis overflow-hidden w-full">{item.venue_name}</h2>
                             {/* <h3 className=" w-full pb-3 font-[100] font-gray-600 italic text-[0.9em] text-start">{item.role}</h3> */}

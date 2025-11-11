@@ -10,6 +10,9 @@ import createSlug from '../../utils/createSlug.js';
 
 const route = express.Router();
 
+/**
+ * FIXME: venueId and venueName didnt match
+ */
 
 /** Get all user venues 
  * return all venues(venue_id, role, name) with that user_id
@@ -24,7 +27,7 @@ route.get('/get_all_user_venues', async (req, res) => {
             return res.status(401).json({message: 'invalid token'});
         }
         const supabase = await sbAdmin();
-        let {data, error} = await supabase
+        let {data: venueInfo, error} = await supabase
             .from('user_venues')
             .select('venue_id, role')
             .eq('user_id', userId);
@@ -36,16 +39,16 @@ route.get('/get_all_user_venues', async (req, res) => {
 
         let {data: venueName, error: error2} = await supabase
             .from('venues')
-            .select('name')
-            .in('id', data.map(item => item.venue_id));
+            .select('id, name')
+            .in('id', venueInfo.map(item => item.venue_id));
 
         if(error2){
             console.log('from userVenuesController:', error2);
             return res.status(401).json({message: error2.message});
         }
         
-        data = data.map((item, index) => { // concat venue_name, venue_id, and role
-            item.venue_name = venueName[index].name;
+        const data = venueInfo.map((item, index) => { // concat venue_name, venue_id, and role // FIXME: this session trigger error
+            item.venue_name = venueName.filter(venue => venue.id === item.venue_id)[0].name;
             return item;
         })
 

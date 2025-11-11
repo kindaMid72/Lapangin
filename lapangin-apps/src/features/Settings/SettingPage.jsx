@@ -8,7 +8,12 @@ import { useState } from 'react'
 import PaymentSetting from './PaymentSetting'
 import VanueSetting from './VanueSetting'
 
+// stores 
+import useVenueStore from '@/shared/stores/venueStore';
+
 export default function SettingPage() {
+
+    const {getVenueMetadata} = useVenueStore();
 
     // state
     const [selectedSetting, setSelectedSetting] = useState('vanue');
@@ -31,7 +36,7 @@ export default function SettingPage() {
 
         <div> {/* navbar section */}
             <ol className="flex flex-wrap justify-evenly items-center">
-                <li onClick={() => setSelectedSetting('vanue')} className={`${baseTabClass} ${selectedSetting === 'vanue' ? activeTabClass : ''}`}>Vanue</li>
+                <li onClick={() => {setSelectedSetting('vanue');}} className={`${baseTabClass} ${selectedSetting === 'vanue' ? activeTabClass : ''}`}>Vanue</li>
                 <li onClick={() => setSelectedSetting('payment')} className={`${baseTabClass} ${selectedSetting === 'payment' ? activeTabClass : ''}`}>Pembayaran</li>
             </ol>
         </div>

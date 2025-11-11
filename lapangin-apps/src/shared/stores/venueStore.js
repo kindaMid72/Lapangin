@@ -12,6 +12,7 @@ const useVenueStore = create(
             setVenueMetadata: (metadata) => { set({ venueMatadata: metadata }); },
             resetActiveVenue: () => { set({ activeVenue: null }); },
             getVenueMetadata: async (venueId) => { // fetch venue metadata ,then sign the data in venueMatadata
+                console.log('getven: ', venueId); // FIXME: this somehow failed, but then, its assign to another venue idk why
                 await api.get(`/venue/get_venue_info/${venueId || get().activeVenue.venueId}`)
                         .then(response => response.data.data)
                         .then(data => {

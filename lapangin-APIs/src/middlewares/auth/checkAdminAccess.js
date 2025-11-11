@@ -17,9 +17,10 @@ export default async function checkAdminAccess(authorization, venue_id) {
     // check if the user have access by checking if the role for that venue if either admin or manager
     const { data, error } = await sbAdmin
         .from('user_venues')
-        .select('role', { count: 'exact' }) // Minta Supabase menghitung jumlah baris
+        .select('role, is_active', { count: 'exact' }) // Minta Supabase menghitung jumlah baris
         .eq('venue_id', venue_id)
         .eq('user_id', user.id) // Gunakan user.id yang sudah divalidasi
+        .eq('is_active', true) // pastikan user active untuk venue yang dimaksud
         .in('role', ['owner', 'admin']); // Periksa apakah perannya adalah admin atau owner
 
     // Jika ada error saat query atau tidak ada baris yang cocok (count === 0), maka tidak punya akses

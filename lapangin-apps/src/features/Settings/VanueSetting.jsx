@@ -36,6 +36,11 @@ export default function VanueSetting() {
 
     // handler
     useEffect(() => {
+        if(!activeVenue) return;
+        getVenueMetadata(activeVenue.venueId); 
+    }, [activeVenue]); // trigger update jika activeVenue berubah (user ganti venue)
+
+    useEffect(() => {
         if (venueMatadata) {
             // set state to the venueMatadata that been fetch before
             // (name, slug, phone, address, description, is_active)
@@ -46,14 +51,15 @@ export default function VanueSetting() {
             setDescription(venueMatadata?.description ?? '');
             setIsActive(venueMatadata?.is_active ?? '');
             setTimezone(venueMatadata?.timezone ?? 'Asia/Jakarta');
-            
+
             setLoading(false);
             return;
         }else{
+            if(!activeVenue) return;
             setLoading(true);
-            getVenueMetadata(); // this will assign venueMetadata from data that been fetch from the database
+            getVenueMetadata(activeVenue.venueId); // this will assign venueMetadata from data that been fetch from the database
         }
-    }, [venueMatadata])
+    }, [venueMatadata, activeVenue])
 
     // watch for changes
     useEffect(() => {
@@ -84,7 +90,7 @@ export default function VanueSetting() {
                 is_active: isActive,
                 timezone: timezone
             }).then(res => {
-                getVenueMetadata(); // trigger update for venue metadata, this also will trigger update in the page
+                getVenueMetadata(activeVenue.venueId); // trigger update for venue metadata, this also will trigger update in the page
                 setChangeOccured(false);
                 setLoading(false);
             })
@@ -160,7 +166,7 @@ export default function VanueSetting() {
                     </div>
 
                     <div className="p-2 w-full flex justify-end"> {/* this section will watch for changes, if changes occured, serve a save option */}
-                        <button type="button" onClick={handleSubmit}  disabled={name?.length > 0 && address?.length > 0 && phone.length > 0 && email.length > 0 ? false : true && changeOccured} className={changeOccured? "px-3 bg-green-600 text-white text-[1.2em] rounded-lg font-extrabold hover:bg-green-700 cursor-pointer transition-color duration-100" : "px-3 bg-gray-600 text-white text-[1.2em] rounded-lg font-extrabold cursor-no-drop transition-color duration-100"}>{isLoading? 'Loading...' : 'Save'}</button>
+                        <button type="button" onClick={() => {if(changeOccured) handleSubmit();}}  disabled={name?.length > 0 && address?.length > 0 && phone.length > 0 && email.length > 0 ? false : true && changeOccured} className={changeOccured? "px-3 bg-green-600 text-white text-[1.2em] rounded-lg font-extrabold hover:bg-green-700 cursor-pointer transition-color duration-100" : "px-3 bg-gray-600 text-white text-[1.2em] rounded-lg font-extrabold cursor-no-drop transition-color duration-100"}>{isLoading? 'Loading...' : 'Save'}</button>
                     </div>
                 </div>
             </div>
