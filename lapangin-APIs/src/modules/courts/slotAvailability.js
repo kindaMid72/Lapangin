@@ -9,8 +9,7 @@ import checkAdminAccess from '../../middlewares/auth/checkAdminAccess.js';
 
 // utils
 import getDayIndex from '../../utils/getDayIndex.js'; // start on monday
-
-
+import isTimeStamptz from '../../utils/checker/isTimeStamptz.js';
 
 // set entry point
 route.post('/get_court_availability_for_given_date', async (req, res) => {
@@ -34,12 +33,11 @@ route.post('/get_court_availability_for_given_date', async (req, res) => {
 
         const { data: nonAvailableSlots, error: getNonAvailableSlotsError } = await sbAdmin
             .from('slot_instances')
-            .select('start_time, end_time, status')
+            .select('start_time, end_time, status, id')
             .eq('court_id', courtId)
             .neq('status', 'free')
-            .eq('slot_date', date); // FIXME: error here
+            .eq('slot_date', date); 
         if (getNonAvailableSlotsError) return res.status(400).json({ message: 'something went wrong' });
-        console.log(nonAvailableSlots);
 
         const { data: courtOpenCloseTime, error: courtOpenCloseTimeError } = await sbAdmin
             .from('availability_rules')
@@ -65,18 +63,57 @@ route.post('/get_court_availability_for_given_date', async (req, res) => {
 
 })
 
-route.post('/testing', async (req, res) => {
+route.post('/insert_new_court_schedule', async (req, res) => {
     try {
         // return open and close time for court on a given date (extract daysName, then return the close and open time)
-        const venueId = req.body?.venue_id;
-        const courtId = req.body?.court_id;
+        const venueId = req.body?.venueId;
+        const courtId = req.body?.courtId;
+        const status = req.body?.status;
+        const startTime = req.body?.startTime; // timestamptz, zone set to venue timezone
+        const endTime = req.body?.endTime; // timestamptz, zone set to venue timezone
+        const slotDate = req.body?.slotDate
 
-        const userHasAccess = await checkUserAccess(req.headers.authorization, venueId);
+        const userHasAccess = await checkUserAccess(req.headers.authorization, venueId); // this is staff base access
         if (!userHasAccess) return res.status(401).json({ message: 'access denied, token expired or user didnt have access' });
 
         const sbAdmin = await createSupabaseAccess();
+        // console.log('reqboyd', req.body);
+        // console.log('status, ', !(status === 'free' || status === 'booked' || status === 'blocked' || status === 'held'));
+        // console.log('start end time', !startTime || !endTime);
+        // console.log(!isTimeStamptz(startTime));
+        // console.log('input test: ', !startTime || !endTime || 
+        //     !(status === 'free' || status === 'booked' || status === 'blocked' || status === 'held') ||
+        //     !isTimeStamptz(startTime) || !isTimeStamptz(endTime)); // ada yang salah di sinji
 
+        // check input format
+        if(!startTime || !endTime || 
+            !(status === 'free' || status === 'booked' || status === 'blocked' || status === 'held') ||
+            !isTimeStamptz(startTime) || !isTimeStamptz(endTime) // check if the date format is false
+        ) return res.status(400).json({message: 'invalid input format'})
+        console.log(req.body);
         // request goes here
+
+        console.log(startTime.split('[')[0], endTime.split('[')[0]);
+        //FIXME: request return 400, bad request
+        const {data,  error: setNewAvailabilityError } = await sbAdmin
+            .from('slot_instances')
+            .insert([
+                {
+                    court_id: courtId,
+                    start_time: startTime.split('[')[0], // make sure date string that been passed is in timestamptz format
+                    end_time: endTime.split('[')[0],
+                    status: status,
+                    slot_date: slotDate
+                }
+            ]).select();
+            console.log('data been insert in slot_instances: ', data);
+        if(setNewAvailabilityError) {
+            console.error('error from slotAvailability: ', setNewAvailabilityError);
+            return res.status(400).json({message: 'something went wrong while inserting new shedules'});
+        }
+
+        return res.status(200).json({message: 'success'});
+
 
     } catch (err) {
         console.error('error from slotAvailability: ', err);
