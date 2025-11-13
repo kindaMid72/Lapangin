@@ -100,7 +100,7 @@ route.get('/get_venue_info/:venueId', async (req, res) => { // PASS
         // return venue info (name, slug, phone, address, description, metadata(notyet), is_active)
         const { data: venueData, error: venueFetchError } = await sbAdmin
             .from('venues')
-            .select('name, slug, phone, address, description, is_active, email, timezone')
+            .select('id, name, slug, phone, address, description, is_active, email, timezone')
             .eq('id', venueId);
 
         if (venueFetchError) return res.status(400).json({ message: 'something went wrong' });

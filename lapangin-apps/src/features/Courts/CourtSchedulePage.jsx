@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 
 // components
 import ConfirmationMessage from '../components/ConfirmationMessage.jsx';
+import ScheduleEditPage from './components/ScheduleEditPage.jsx';
 
 // stores
 import useCourtStore from '@/shared/stores/courtStore';
@@ -14,7 +15,7 @@ import useVenueStore from '@/shared/stores/venueStore';
 import minuteRestriction from '@/utils/inputRestriction/minuteRestriction.js';
 
 /**
- * FIXME: time format after fetch from database didnt match the correct venue timezone
+ * TODO:
  * 
  */
 
@@ -95,7 +96,7 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                      */
 
                     let { nonAvailableSlots, openTime, closeTime, slotDurationMinutes } = data; // extract data from response
-                    console.log('raw nonAvailable (utc): ', nonAvailableSlots); // kembalikan dateString UTC format
+                    // console.log('raw nonAvailable (utc): ', nonAvailableSlots); // kembalikan dateString UTC format
 
                     // buat slot berdasarkan template slotDurationMinutes
                     // 1. kalkulasi banyak slot yang akan di buat di tanggal itu
@@ -111,7 +112,6 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                     } else if (openMinutes == '00' && closeMinutes == '30') {
                         totalMaximumSlots += 1;
                     }
-                    // // TODO: debug vneue
                     // console.log({ activeVenue });
 
                     // 2. set slot kosong ke dalam slots
@@ -148,11 +148,9 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                     if (temp.length > totalSlots) {
                         temp.splice(totalSlots);
                     }
-                    setSlots(temp);
-
+                    
                     // 3. set nonAvailableSlots ke dalam slots, dan berikan mark
                     //nonAvailableSlots: [], <-- {start_time, end_time, status ('free','held','booked','blocked'), id}
-                    // buat object date FIXME: error my occured here
                     let pointer = 0; // pointer of nonAvailableSlots
                     nonAvailableSlots = nonAvailableSlots.map(item => {
                         item.start_time = Temporal.Instant.from(`${item.start_time}`).toZonedDateTimeISO(venueMetadata?.timezone); // convert utc to date, then convert utc to venue timezone
@@ -170,7 +168,7 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                     })
                     // set global state nonAvailable
                     
-                    // Cara yang lebih baik untuk debugging: Gunakan forEach atau map ke objek baru TODO: debug, erase this later on
+                    // Cara yang lebih baik untuk debugging: Gunakan forEach atau map ke objek baru 
                     
                     function checkIfOccupied(aStart, aEnd, bStart, bEnd) {
                         // check if one or all this condition were match
@@ -202,10 +200,11 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                             
                         }
                     }
-                    console.log("Non-available slots (sorted):", nonAvailableSlots.map(item => ({
-                        start: item.start_time.toString() ,
-                        end: item.end_time.toString()
-                    })));
+                    // console.log("Non-available slots (sorted):", nonAvailableSlots.map(item => ({
+                        //     start: item.start_time.toString() ,
+                        //     end: item.end_time.toString()
+                        // })));
+                    setSlots(temp);
                     setNonAvailable(nonAvailableSlots); // [{start_time, end_time, status, id}, ...]
                 })
                 .catch(err => {
@@ -278,7 +277,7 @@ export default function CourtSchedulePage({ court, show, onClose }) {
             setError(err.message);
         }
     }
-    // TODO: create handler for new schedule creation, make sure to trigger update for changes
+
     async function handleNewSchedules() {
         try {
             // validate input
@@ -367,8 +366,8 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                 delaySecond={1}
             ></ConfirmationMessage>
             }
-            <div className='fixed inset-0 z-40 bg-gray-900 opacity-50' onClick={onClose}></div>
-            <div className="fixed z-44 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 text-white p-8 rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div className='fixed inset-0 z-40 bg-gray-900/50 backdrop-blur-xs' onClick={onClose}></div>
+            <div className="fixed z-40 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800 text-white p-8 rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
                 <button onClick={onClose} className="absolute top-4 right-6 text-4xl hover:text-red-500">&times;</button>
                 <h2 className="text-2xl font-bold mb-4">Atur Jadwal: {court.name}</h2>
 
@@ -383,7 +382,7 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                         onClick={() => setConfirmBlockDate(true)}
                         className={isLoading ? "px-4 py-2 rounded-xl bg-gray-700 hover:bg-gray-600" : (isBlocked ? "px-4 py-2 rounded-xl bg-green-700 hover:bg-green-600" : "px-4 py-2 rounded-xl bg-red-700 hover:bg-red-600")}
                     >
-                        {isBlocked ? (isLoading ? 'loading...' : 'Buka Tanggal') : (isLoading ? 'loading...' : 'Blokir Tanggal')} {/* TODO: ini bakal dinamis, jika tanggal sudah diblock, tampilkan buka tanggal, sebaliknya berlaku */}
+                        {isBlocked ? (isLoading ? 'loading...' : 'Buka Tanggal') : (isLoading ? 'loading...' : 'Blokir Tanggal')}
                     </button>
                 </div>
 
@@ -440,25 +439,28 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                         {
                             nonAvailable.length > 0 ?
                                 nonAvailable.map(item => {
-                                    return (<>
-                                        <li key={item.id} className='relative border-1 flex border-gray-600 rounded-lg p-2 w-full'>
-                                            <div className='flex flex-col flex-1'>
-                                                <p className='font-extrabold'>{item.start_time.toString().slice(11, 16)} - {item.end_time.toString().slice(11, 16)}</p>
-                                                <p className={`font-extralight text-[0.9em] ${item.status === 'held' ? 'text-yellow-400' : item.status === 'booked' ? 'text-orange-400' : 'text-red-500'}`}>{item.status}</p>
+                                    return (
+                                        <li key={item.id} className='relative border-1 flex flex-col border-gray-600 rounded-lg p-2 w-full z-40'>
+                                            <div className='relative flex w-full'>
+                                                <div className='flex flex-col flex-1'>
+                                                    <p className='font-extrabold'>{item.start_time.toString().slice(11, 16)} - {item.end_time.toString().slice(11, 16)}</p>
+                                                    <p className={`font-extralight text-[0.9em] ${item.status === 'held' ? 'text-yellow-400' : item.status === 'booked' ? 'text-orange-400' : 'text-red-500'}`}>{item.status}</p>
+                                                </div> {/* TODO: add edit page to this section */}
+                                                <div onClick={() => { }} className=' size-10 rounded-full flex justify-center items-center hover:bg-gray-500 transition-colors duration-100 ease-in cursor-pointer'>
+                                                    <i className='fa-solid fa-pen-to-square' onClick={() => { showEditOccupied ? setShowEditOccupied(false) : setShowEditOccupied(item.id) }}></i>
+                                                </div>
                                             </div>
-                                            <div ref={buttonFocus} onClick={() => { }} className=' size-10 rounded-full flex justify-center items-center hover:bg-gray-500 transition-colors duration-100 ease-in cursor-pointer'>
-                                                <i className='fa-solid fa-pen-to-square' onClick={() => { showEditOccupied ? setShowEditOccupied(false) : setShowEditOccupied(item.id) }}></i>
-                                            </div>
-                                            <div ref={focusEditAvailability} className={`${showEditOccupied === item.id ? 'block' : 'hidden'} absolute right-15 -top-20 w-fit z-40 dark:bg-gray-800 bg-white`}>
-                                                <ol className='flex items-center flex-col border-1 p-1 bg-white dark:bg-gray-600 rounded-xl max-w-fit text-white dark:text-white  font-bold dark:[&_li]:hover:bg-yellow-300 [&_li]:hover:bg-yellow-500 border-transparent [&_li]:cursor-pointer [&_li]:p-1 [&_li]:rounded-lg [&_li]:w-full [&_li]:hover:text-black '>
-                                                    <li className='flex gap-3 items-center min-w-fit'> <i className="fa-solid  fa-pen"></i><p className='flex-1 text-nowrap'>Edit</p></li>
-                                                    <li className='flex gap-3 items-center min-w-fit'> <i className="fa-solid  fa-shield-halved"></i> <p className='flex-1 text-nowrap'>Kelola Akses</p></li>
-                                                    <li className='flex gap-3 items-center min-w-fit'> <i className="fa-solid  fa-user-minus"></i> <p className='flex-1 text-nowrap'>Delete</p></li>
-                                                    <li className='flex gap-3 items-center min-w-fit hover:[&_i]:text-red-700 hover:[&_p]:text-red-700'> <i className="fa-solid  fa-trash "></i> <p className='flex-1 text-nowrap'>Hapus</p></li>
-                                                </ol>
-                                            </div>
+                                            {/* TODO: edit component wil goes here */}
+                                            {showEditOccupied && item.id === showEditOccupied && // show component if id match & showEditOccupied is true (button clicked)
+                                                <ScheduleEditPage
+                                                    selectedDate={selectedDate}
+                                                    schedule={item}
+                                                    onClose={() => { setShowEditOccupied(false) }}
+                                                    onConfirm={() => { getSlotsForSelectedDate(); }} // if update occured, trigger update for given date
+                                                />
+                                            }
                                         </li>
-                                    </>)
+                                    )
                                 }
                                 )
                                 : <p className='text-gray-400 italic'>No occupied slots found.</p>

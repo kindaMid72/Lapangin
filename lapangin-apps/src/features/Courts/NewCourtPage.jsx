@@ -103,10 +103,10 @@ export default function NewCourtPage({ show, onClose, onCourtAdded, type }) {
     if (!show) return null;
 
     return (<>
-        <div className='fixed z-45 h-full w-full bg-gray-900 opacity-70' onClick={onClose}>
+        <div className='fixed z-45 inset-0 h-full w-full bg-gray-900/50 backdrop-blur-xs' onClick={onClose}>
             {/* this is for background overlay */}
         </div>
-        <div className="fixed z-46 pt-25 pb-5 inset-0 w-full h-full overflow-auto bg-gray-transparent flex justify-center items-center ">
+        <div className="fixed z-46 pb-5 inset-0 w-full h-full overflow-auto bg-gray-transparent flex justify-center items-center ">
             <div ref={focusRef} className='bg-gray-800 min-w-fit text-white p-8 rounded-xl shadow-lg w-full max-w-md relative'>
                 <button onClick={onClose} disabled={isLoading} className="absolute top-4 right-6 text-4xl hover:text-red-500 transition-colors disabled:text-gray-500">&times;</button>
                 <h2 className="flex text-2xl font-bold mb-6 text-center">Tambah Lapangan Baru</h2>

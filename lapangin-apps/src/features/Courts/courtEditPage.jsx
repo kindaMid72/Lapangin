@@ -115,7 +115,7 @@ export default function EditCourtPage({ court, show, onClose, onCourtUpdated }) 
                 delayConfirm={true}
                 delayCancel={false}
             />}
-            <div className='fixed inset-0 z-40 bg-gray-900 opacity-50' onClick={onClose}></div>
+            <div className='fixed inset-0 z-45 bg-gray-900/50 backdrop-blur-xs' onClick={onClose}></div>
             <div className="fixed z-48 top-1/2 left-1/2 overflow-auto scrollbar-hide -translate-x-1/2 -translate-y-1/2 bg-gray-800 text-white p-8 rounded-xl shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                 <button onClick={onClose} disabled={isLoading} className="absolute top-4 right-6 text-4xl hover:text-red-500 transition-colors disabled:text-gray-500">&times;</button>
                 <h2 className="text-2xl font-bold mb-6">Edit Lapangan: {court.name}</h2>

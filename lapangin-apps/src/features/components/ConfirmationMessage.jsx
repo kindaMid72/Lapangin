@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from "react";
 
-export default ({ title, message, onConfirm, onCancel, delayConfirm = false, delayCancel = false, confirmColor='red-600', cancelColor='gray-200', delaySecond=5}) => {
+export default ({ title, message, onConfirm, onCancel, delayConfirm = false, delayCancel = false, confirmColor='red', cancelColor='gray', delaySecond=5, backgroundClass=''}) => {
     const [timeLeft, setTimeLeft] = useState(delaySecond);
 
     useEffect(() => {
@@ -21,7 +21,8 @@ export default ({ title, message, onConfirm, onCancel, delayConfirm = false, del
     return (
         <>
             {/* Backdrop */}
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.1)] bg-opacity-50  backdrop-blur-sm">
+            <div onClick={onCancel} className={backgroundClass ? backgroundClass : "fixed w-full h-full inset-0 z-49 flex items-center justify-center bg-gray-900/50 backdrop-blur-xs"}></div>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent backdrop-blur-xs">
                 {/* Modal Card */}
                 <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
                     <div className="text-center">
@@ -33,8 +34,7 @@ export default ({ title, message, onConfirm, onCancel, delayConfirm = false, del
                     <div className="mt-6 flex justify-center gap-4">
                         <button
                             onClick={onCancel}
-                            style={{backgroundColor: `${cancelColor}`}}
-                            className="rounded-md bg-gray-200 px-4 py-2 font-semibold text-gray-800 transition-colors hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-100 dark:hover:bg-gray-500"
+                            className={`rounded-md bg-${cancelColor}-500 px-4 py-2 font-semibold text-${cancelColor}-800 transition-colors hover:bg-${cancelColor}-500 dark:bg-${cancelColor}-600 dark:text-${cancelColor}-100 dark:hover:bg-${cancelColor}-500`}
                         >
                             Cancel
                         </button>
@@ -42,13 +42,13 @@ export default ({ title, message, onConfirm, onCancel, delayConfirm = false, del
                         <button
                             onClick={onConfirm}
                             disabled={delayConfirm && timeLeft > 0}
-                            style={{backgroundColor: `${confirmColor}`}}
-                            className="rounded-md bg-red-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-400 dark:disabled:bg-red-800"
+                            className={`rounded-md bg-${confirmColor}-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-${confirmColor}-700 disabled:cursor-not-allowed disabled:bg-${confirmColor}-400 dark:disabled:bg-${confirmColor}-800`}
                         >
                             {delayConfirm && timeLeft > 0 ? `Confirm (${timeLeft}s)` : 'Confirm'}
                         </button>
                     </div>
                 </div>
+
             </div>
         </>
     )

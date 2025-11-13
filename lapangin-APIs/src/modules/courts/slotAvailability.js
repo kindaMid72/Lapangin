@@ -2,14 +2,17 @@ import express from 'express';
 
 const route = express.Router();
 
+// imports
+import { Temporal } from '@js-temporal/polyfill';
+
 // auth
 import createSupabaseAccess from '../../libs/supabase/admin.js';
-import checkUserAccess from '../../middlewares/auth/checkUserAccess.js';
 import checkAdminAccess from '../../middlewares/auth/checkAdminAccess.js';
+import checkUserAccess from '../../middlewares/auth/checkUserAccess.js';
 
 // utils
-import getDayIndex from '../../utils/getDayIndex.js'; // start on monday
 import isTimeStamptz from '../../utils/checker/isTimeStamptz.js';
+import getDayIndex from '../../utils/getDayIndex.js'; // start on monday
 
 // set entry point
 route.post('/get_court_availability_for_given_date', async (req, res) => {
@@ -90,10 +93,10 @@ route.post('/insert_new_court_schedule', async (req, res) => {
             !(status === 'free' || status === 'booked' || status === 'blocked' || status === 'held') ||
             !isTimeStamptz(startTime) || !isTimeStamptz(endTime) // check if the date format is false
         ) return res.status(400).json({message: 'invalid input format'})
-        console.log(req.body);
+        // console.log(req.body);
         // request goes here
 
-        console.log(startTime.split('[')[0], endTime.split('[')[0]);
+        // console.log(startTime.split('[')[0], endTime.split('[')[0]);
         //FIXME: request return 400, bad request
         const {data,  error: setNewAvailabilityError } = await sbAdmin
             .from('slot_instances')
@@ -106,7 +109,7 @@ route.post('/insert_new_court_schedule', async (req, res) => {
                     slot_date: slotDate
                 }
             ]).select();
-            console.log('data been insert in slot_instances: ', data);
+            // console.log('data been insert in slot_instances: ', data);
         if(setNewAvailabilityError) {
             console.error('error from slotAvailability: ', setNewAvailabilityError);
             return res.status(400).json({message: 'something went wrong while inserting new shedules'});
@@ -120,6 +123,81 @@ route.post('/insert_new_court_schedule', async (req, res) => {
         return res.status(500).json({ message: 'something went wrong' });
     }
 
+})
+
+route.put('/update_court_schedule/:venueId/:scheduleId',async (req, res) => {
+    try{
+        // identifier
+        const venueId = req.params?.venueId;
+        const scheduleId = req.params?.scheduleId;
+        // data
+        const status = req.body?.status;
+        const startTime = req.body?.startTime.split('[')[0]; // timestamptz,
+        const endTime = req.body?.endTime.split('[')[0]; // timestamptz,
+        const startInstant = Temporal.Instant.from(startTime);
+        const endInstant = Temporal.Instant.from(endTime);
+
+        // check input
+        if(!isTimeStamptz(req.body.startTime) || !isTimeStamptz(req.body.endTime)){
+            return res.status(400).json({message: 'invalid input format'});
+        } 
+        if((
+            !startTime || !endTime || !(status === 'held' || status === 'free' || status === 'booked' || status === 'blocked') || (Temporal.Instant.compare(startInstant, endInstant) >= 0))
+        ){ // check if startTime < endTime
+            return res.status(400).json({message: 'invalid input format'});
+        }
+        
+        // check user access, this is staff based access
+        const userHasAccess = await checkUserAccess(req.headers.authorization, venueId);
+        if(!userHasAccess) return res.status(401).json({message: 'access denied, token expired or user didnt have access'});
+
+        const sbAdmin = await createSupabaseAccess(); // create supabase access
+        const {error: updateScheduleError, data: updatedSchedule} = await sbAdmin
+            .from('slot_instances')
+            .update({
+                start_time: startTime,
+                end_time: endTime,
+                status: status
+            })
+            .eq('id', scheduleId);
+        if(updateScheduleError) {
+            console.error('error from slotAvailability, updateScheduleError: ', updateScheduleError);
+            return res.status(400).json({message: 'something went wrong'})
+        }
+
+        return res.status(200).json({message: 'success'});
+        
+    }catch(err){
+        console.error('error from slotAvailability: ', err);
+        return res.status(500).json({ message: 'something went wrong' });
+    }
+})
+
+route.delete('/delete_court_schedule/:venueId/:scheduleId', async (req, res) => {
+    try{
+        // idenfitier 
+        const venueId = req.params.venueId;
+        // data
+        const scheduleId = req.params.scheduleId;
+
+        // check user access
+        const userHasAccess = await checkUserAccess(req.headers.authorization, venueId);
+        if(!userHasAccess) return res.status(400).json({message: 'access denied, token expired or user didnt have access'});
+
+        const sbAdmin = await createSupabaseAccess();
+
+        const {error: deleteScheduleError, data: deletedSchedule} = await sbAdmin
+            .from('slot_instances')
+            .delete()
+            .eq('id', scheduleId);
+        if(deleteScheduleError) return res.status(403).json({message: 'insert new schedules failed'})
+
+        return res.status(200).json({message: 'success'});
+
+    }catch(err){
+        console.error('error from slotAvailability: ', err);
+        return res.status(500).json({ message: 'something went wrong' });
+    }
 })
 
 export default route;

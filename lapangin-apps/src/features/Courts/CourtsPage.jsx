@@ -110,7 +110,7 @@ export default function CourtsPage() {
 
     return (
         <>
-        <div>
+        <div className='z-30'>
             {showNewCourtModal && <NewCourtPage 
                 show={showNewCourtModal} 
                 onClose={() => setShowNewCourtModal(false)} 
