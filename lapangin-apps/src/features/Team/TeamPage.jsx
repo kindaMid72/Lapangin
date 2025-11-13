@@ -1,15 +1,42 @@
 'use client'
 
+// imports
+import React, {useState, useEffect, useRef} from 'react';
+
 // library
 
 
 //components
 import InfoCard from "../components/InfoCard";
 import UserRowsData from "./UserRowsData";
+import ConfirmationMessage from "../components/ConfirmationMessage.jsx";
 
+// utils
+import api from '../../utils/axiosClient/axiosInterceptor.js';
+
+// stores
+import useVenueStore from "@/shared/stores/venueStore.js";
+import useTeamStore from "@/shared/stores/teamStore.js";
 
 
 export default function TeamPage() {
+    // stores 
+    const {venueMetadata, getVenueMetadata, activeVenue} = useVenueStore();
+    const {team, getTeam} = useTeamStore();
+
+    // state
+    const [member, setMember] = useState([]); // store all member from this venue, this is local state
+    
+    
+    // on mount handler
+    useEffect(() => {
+        if(team){
+            setMember(team);
+        }else{
+            getTeam();
+        }
+    }, [venueMetadata, activeVenue])
+
 
 
     return (<div className="min-h-screen h-fit bg-white dark:bg-gray-800">

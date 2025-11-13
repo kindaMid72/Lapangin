@@ -12,8 +12,6 @@ export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
     const clickFocus = useRef(null);
     const excludeFocusButton = useRef(null);
 
-    
-
     // formatted date
     const date = new Date(Bergabung);
     const day = date.getDate();

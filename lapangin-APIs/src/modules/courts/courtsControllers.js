@@ -201,14 +201,14 @@ route.post('/update_court_by_id/:courtId', async (req, res) => {
             // update availability rules
         const newAvailabilityRules = req.body.availability_rules;
 
-        const {data: setSlotTemplates, error: setSlotTemplateError} = await sbAdmin
-            .from('slot_templates')
-            .update([
-                {
-                    slot_duration_minutes: req.body.slot_duration_minutes
-                }
-            ]).eq('court_id', courtId);
-            if(setSlotTemplateError) return res.status(400).json({message: 'something went wrong'});
+        // const {data: setSlotTemplates, error: setSlotTemplateError} = await sbAdmin
+        //     .from('slot_templates')
+        //     .update([
+        //         {
+        //             slot_duration_minutes: req.body.slot_duration_minutes
+        //         }
+        //     ]).eq('court_id', courtId);
+        //     if(setSlotTemplateError) return res.status(400).json({message: 'something went wrong'});
 
         await newAvailabilityRules.forEach( async (rule) => {
             try{
@@ -228,16 +228,16 @@ route.post('/update_court_by_id/:courtId', async (req, res) => {
             }
         });
 
-        // save new general price rules
-        const {data: updatedGeneralPriceRules, error: updateGeneralPriceRulesError} = await sbAdmin
-            .from('general_price_rules')
-            .update([
-                {
-                    weekday_price: req.body.weekday_slot_price,
-                    weekend_price: req.body.weekend_slot_price
-                }
-            ]).eq('court_id', courtId)
-        if(updateGeneralPriceRulesError) return res.status(400).json({message: 'something went wrong'});
+        // // save new general price rules
+        // const { error: updateGeneralPriceRulesError} = await sbAdmin
+        //     .from('general_price_rules')
+        //     .update([
+        //         {
+        //             weekday_price: req.body.weekday_slot_price,
+        //             weekend_price: req.body.weekend_slot_price
+        //         }
+        //     ]).eq('court_id', courtId)
+        // if(updateGeneralPriceRulesError) return res.status(400).json({message: 'something went wrong'});
 
             
         return res.status(200).json({message: 'court updated'});
