@@ -22,7 +22,6 @@ const useTeamStore = create((set, get) => ({
             await api.get(`/team/get_team/${id}`)
                 .then(res => res.data.data)
                 .then(data => {
-                    console.log('team data: ', data);
                     set({ team: data });
                 })
                 .catch(err => console.error(err));

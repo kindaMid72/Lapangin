@@ -7,8 +7,8 @@ export default function InfoCard ({title, value, statisticValue, icon}) {
             <div className="mr-3 flex-1 flex flex-col ">
                 <h3 className=" font-extrabold mb-3 text-sm">{title || "Title"}</h3>
                 <div className="">
-                    <p className="text-2xl font-extrabold">{value || ""}</p>
-                    <p className="text-sm">{statisticValue || ""}</p>
+                    <p className="text-2xl font-extrabold">{String(value) || ""}</p>
+                    <p className="text-sm ">{statisticValue || ""}</p>
                 </div>
             </div>
             <div className="[&>i]:text-[3em] [&>i]:mr-3 ">

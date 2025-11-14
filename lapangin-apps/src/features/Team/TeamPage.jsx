@@ -1,45 +1,65 @@
 'use client'
 
 // imports
-import React, {useState, useEffect, useRef} from 'react';
+import { useEffect, useState } from 'react';
+import { Temporal } from '@js-temporal/polyfill';
 
 // library
 
 
 //components
+import MemberEditPage from "./MemberEditPage.jsx";
 import InfoCard from "../components/InfoCard";
 import UserRowsData from "./UserRowsData";
-import ConfirmationMessage from "../components/ConfirmationMessage.jsx";
+import ConfirmationMessage from "../components/ConfirmationMessage";
 
 // utils
-import api from '../../utils/axiosClient/axiosInterceptor.js';
 
 // stores
-import useVenueStore from "@/shared/stores/venueStore.js";
 import useTeamStore from "@/shared/stores/teamStore.js";
+import useVenueStore from "@/shared/stores/venueStore.js";
 
 
 export default function TeamPage() {
     // stores 
-    const {venueMetadata, getVenueMetadata, activeVenue} = useVenueStore();
-    const {team, getTeam} = useTeamStore();
+    const { venueMetadata, getVenueMetadata, activeVenue } = useVenueStore();
+    const { team, getTeam } = useTeamStore(); // team contain all medatadata for this team features
+                                             // getTeam will fetch them, call this if update occured
 
     // state
     const [member, setMember] = useState([]); // store all member from this venue, this is local state
-    
-    
+    const [totalMember, setTotalMember] = useState(0);
+    const [totalActive, setTotalActive] = useState(0);
+    const [totalNonActive, setTotalNonActive] = useState(0);
+    const [showEditPage, setShowEditPage] = useState(false);
+    const [selectedMember, setSelectedMember] = useState(null);
+
+    // handler
+
+
     // on mount handler
     useEffect(() => {
-        if(team){
+        getTeam();
+    }, [activeVenue]);
+
+    // Update local member state when team data from the store changes
+    useEffect(() => {
+        if (team && team.allMemberData) {
             setMember(team.allMemberData);
-        }else{
-            getTeam();
+            setTotalMember(team.totalMember);
+            setTotalActive(team.totalActive);
+            setTotalNonActive(team.totalNonActive);
         }
-    }, [venueMetadata, activeVenue])
+    }, [team]);
 
+    return (
+        <>
+    {showEditPage && <MemberEditPage 
+        selectedMember={selectedMember} 
+        onClose={() => {setShowEditPage(false); setSelectedMember(null); }} // reset local state after edit page closed 
 
-
-    return (<div className="min-h-screen h-fit bg-white dark:bg-gray-800">
+    />}
+    <div className="min-h-screen h-fit bg-white dark:bg-gray-800">
         {/* header section */}
         <div className="flex justify-start w-full p-4 h-fit dark:bg-gray-800"> {/** header */}
             <div className="flex-1">
@@ -52,38 +72,45 @@ export default function TeamPage() {
             </div>
         </div>
 
-        {/* info view card section */}
+        {/* info view card section FIXME: info card tidak aktif tidak menampilkan angka yang seharunay (gada angka)*/} 
         <div className="flex flex-wrap justify-evenly content-stretch gap-3 p-4 [&>*]:flex-1 ">
-            <InfoCard title="Total Anggota" value={5} icon={<i className="fa-solid fa-users-rays text-green-300"></i>}/>
-            <InfoCard title="Aktif" value={32} icon={<i className="fa-solid fa-user-check text-blue-300"></i>}/>
-            <InfoCard title="Tidak Aktif" value={2} icon={<i className="fa-solid fa-user-slash text-red-300"></i>} />
+            <InfoCard title="Total Anggota" value={totalMember} icon={<i className="fa-solid fa-users-rays text-green-300"></i>} />
+            <InfoCard title="Aktif" value={totalActive} icon={<i className="fa-solid fa-user-check text-blue-300"></i>} />
+            <InfoCard title="Tidak Aktif" value={totalNonActive} icon={<i className="fa-solid fa-user-slash text-red-300"></i>} />
         </div>
 
         {/* user list section */}
         <div className="p-3 w-full h-fit dark:bg-gray-800 bg-white">
-        <table className="border-2 w-full h-fit dark:bg-gray-800 border-gray-700 rounded-xl border-separate border-spacing-0 [&_th]:p-2">
-            <thead >
-                {/* Anggota, role, status, action */}
-                <tr className=" [&_th]:border-b-2 [&_th]:border-gray-700 [&_th]:text-center bg-gray-900 ">
-                    <th className="rounded-tl-xl">Anggota</th>
-                    <th>Kontak</th>
-                    <th>Role</th>
-                    <th>Bergabung</th>
-                    <th>Status</th>
-                    <th className="rounded-tr-xl">Aksi</th>
-                </tr>
-            </thead>
-                
-            <tbody className="h-fit bg-white dark:bg-gray-800">
-                {member.map((member, index)=> {
-                    return (
-                        <UserRowsData 
-                            Anggota={member}
-                        />
-                    )
-                } )}
-            </tbody>
-        </table>
+            <table className="border-2 w-full h-fit dark:bg-gray-800 border-gray-700 rounded-xl border-separate border-spacing-0 [&_th]:p-2">
+                <thead >
+                    {/* Anggota, role, status, action */}
+                    <tr className=" [&_th]:border-b-2 [&_th]:border-gray-700 [&_th]:text-center bg-gray-900 ">
+                        <th className="rounded-tl-xl">Anggota</th>
+                        <th>Kontak</th>
+                        <th>Role</th>
+                        <th>Bergabung</th>
+                        <th>Status</th>
+                        <th className="rounded-tr-xl">Aksi</th>
+                    </tr>
+                </thead>
+
+                <tbody className="h-fit bg-white dark:bg-gray-800">
+                    {member.map((member, index) => {
+                        return (
+                            <UserRowsData
+                                key={member.email}
+                                Anggota={member.name}
+                                Kontak={{ email: member.email, phone: member.phone }}
+                                Role={member.role}
+                                Status={member.is_active}
+                                Bergabung={member.join_at}
+                                onEdit={() => {setShowEditPage(true); setSelectedMember(member)}}
+                            />
+                        )
+                    })}
+                </tbody>
+            </table>
         </div>
-    </div>)
+    </div>
+        </>)
 }

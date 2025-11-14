@@ -42,7 +42,7 @@ route.post('/create_new_venue', async (req, res) => { // PASS
         const timezone = req.body.timezone || "Asia/Jakarta";
         const slug = createSlug(vanueName);
 
-        const userName = userInstance.user?.email.split('@')[1];
+        const userName = userInstance.user?.email.split('@')[0];
         const userEmail = userInstance.user?.email;
         const userPhone = null;
 

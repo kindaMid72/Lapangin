@@ -1,12 +1,12 @@
 'use client'
 
 /**
- * FIXME: action button hidden menu is overflowed and cant be interact with
+ * 
  */
 
 import { useEffect, useRef } from 'react';
 
-export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
+export default ({ Anggota, Kontak, Role, Bergabung, Status, onEdit,  }) => {
 
     // state
     const clickFocus = useRef(null);
@@ -50,13 +50,11 @@ export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
             </td>
             <td>{/* kontak */}
                 <p><i className="fa-solid fa-envelope"></i> {Kontak.email}</p>
-                <p><i className="fa-solid fa-phone"></i> {Kontak.phone}</p>
+                <p><i className="fa-solid fa-phone"></i> {Kontak.phone || 'tidak ada'}</p>
             </td>
             <td>{/** role */}
                 <div className="flex justify-center cursor-default">
-                    <div className={'rounded-lg px-2 w-fit text-center flex justify-center'} style={{ backgroundColor: (Role === 'Pemilik' ? '#287f28' : Role === 'Admin' ? '#aca51a' : '#757568' )}}>
-                        <p className="font-bold text-white">{Role}</p>
-                    </div>
+                    <p className="font-bold text-white">{Role}</p>
                 </div>
             </td>
             <td>{/**  Bergabung: tanggal */}
@@ -67,17 +65,17 @@ export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
             </td>
             <td>{/* status */}
                 <div className={''}>
-                    {Status}
+                    {Status === true ? <i className='fa-solid fa-user-check text-blue-300'></i>: <i className='fa-solid fa-user-slash text-red-300'></i>}
                 </div>
             </td>
             <td className='relative'>{/** aksi */}
                 <div className="flex items-center justify-center">
-                    <div ref={excludeFocusButton} onClick={clickFocusHandler} className="p-2 rounded-full hover:bg-gray-600 w-fit h-fit cursor-pointer flex justify-center items-center">
+                    <div  onClick={onEdit} className="p-2 rounded-full hover:bg-gray-600 w-fit h-fit cursor-pointer flex justify-center items-center">
                         <i className="fa-solid fa-pen-to-square"></i>
                     </div>
                 </div>
                 {/* dropdown menu */}
-                <div ref={clickFocus} className="hidden absolute right-5 top-13 w-fit z-40 dark:bg-gray-800 bg-white">
+                <div  className="hidden absolute right-5 top-13 w-fit z-40 dark:bg-gray-800 bg-white">
                     <ol className='flex items-center flex-col border-1 p-1 bg-white dark:bg-gray-600 rounded-xl max-w-fit text-white dark:text-white  font-bold dark:[&_li]:hover:bg-yellow-300 [&_li]:hover:bg-yellow-500 border-transparent [&_li]:cursor-pointer [&_li]:p-1 [&_li]:rounded-lg [&_li]:w-full [&_li]:hover:text-black '>
                         <li className='flex gap-3 items-center min-w-fit'> <i className="fa-solid  fa-pen"></i><p className='flex-1 text-nowrap'>Edit</p></li>
                         <li className='flex gap-3 items-center min-w-fit'> <i className="fa-solid  fa-shield-halved"></i> <p className='flex-1 text-nowrap'>Kelola Akses</p></li>
