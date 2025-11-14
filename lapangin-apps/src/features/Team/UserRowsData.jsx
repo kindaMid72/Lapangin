@@ -54,7 +54,7 @@ export default ({ Anggota, Kontak, Role, Bergabung, Status }) => {
             </td>
             <td>{/** role */}
                 <div className="flex justify-center cursor-default">
-                    <div className={'rounded-lg px-2 w-fit text-center flex justify-center'} style={{ backgroundColor: Role === 'Pemilik' ? '#287f28' : Role === 'Admin' ? '#aca51a' : '#757568' }}>
+                    <div className={'rounded-lg px-2 w-fit text-center flex justify-center'} style={{ backgroundColor: (Role === 'Pemilik' ? '#287f28' : Role === 'Admin' ? '#aca51a' : '#757568' )}}>
                         <p className="font-bold text-white">{Role}</p>
                     </div>
                 </div>

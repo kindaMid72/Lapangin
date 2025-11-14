@@ -31,7 +31,7 @@ export default function TeamPage() {
     // on mount handler
     useEffect(() => {
         if(team){
-            setMember(team);
+            setMember(team.allMemberData);
         }else{
             getTeam();
         }
@@ -75,12 +75,13 @@ export default function TeamPage() {
             </thead>
                 
             <tbody className="h-fit bg-white dark:bg-gray-800">
-                <UserRowsData Anggota="David" Kontak={{email: 'king@gmail.com', phone: '08123456789'}} Role='Pemilik' Bergabung={Date.now()} Status={'Aktif' === 'Aktif'? <i className="fa-solid fa-user-check text-green-500"></i> : <i className="fa-solid fa-user-slash text-red-500"></i>} />
-                <UserRowsData Anggota="David" Kontak={{email: 'king@gmail.com', phone: '08123456789'}} Role='Admin' Bergabung={Date.now()} Status={'Aif' === 'Aktif'? <i className="fa-solid fa-user-check text-green-500"></i> : <i className="fa-solid fa-user-slash text-red-500"></i>} />
-                <UserRowsData Anggota="David" Kontak={{email: 'king@gmail.com', phone: '08123456789'}} Role='Karyawan' Bergabung={Date.now()} Status={'Aktif' === 'Aktif'? <i className="fa-solid fa-user-check text-green-500"></i> : <i className="fa-solid fa-user-slash text-red-500"></i>}/>
-                <UserRowsData Anggota="David" Kontak={{email: 'king@gmail.com', phone: '08123456789'}} Role='Karyawan' Bergabung={Date.now()} Status={'Atif' === 'Aktif'? <i className="fa-solid fa-user-check text-green-500"></i> : <i className="fa-solid fa-user-slash text-red-500"></i>}/>
-                <UserRowsData Anggota="David" Kontak={{email: 'king@gmail.com', phone: '08123456789'}} Role='Admin' Bergabung={Date.now()} Status={'Akif' === 'Aktif'? <i className="fa-solid fa-user-check text-green-500"></i> : <i className="fa-solid fa-user-slash text-red-500"></i>}/>
-                <UserRowsData Anggota="David" Kontak={{email: 'king@gmail.com', phone: '08123456789'}} Role='Admin' Bergabung={Date.now()} Status={'Aktif' === 'Aktif'? <i className="fa-solid fa-user-check text-green-500"></i> : <i className="fa-solid fa-user-slash text-red-500"></i>}/>
+                {member.map((member, index)=> {
+                    return (
+                        <UserRowsData 
+                            Anggota={member}
+                        />
+                    )
+                } )}
             </tbody>
         </table>
         </div>

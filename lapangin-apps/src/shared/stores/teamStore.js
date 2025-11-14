@@ -6,9 +6,10 @@ import useVenueStore from './venueStore';
 
 const useTeamStore = create((set, get) => ({
     team: null,
-    getTeam: async (venueId) => {
+    getTeam: async () => {
+        // import venueStore for venue id, incase venue 
         const { activeVenue, venueMetadata, getVenueMetadata } = useVenueStore.getState();
-        const id = venueId || venueMetadata?.id || activeVenue?.venueId;
+        const id = venueMetadata?.id || activeVenue?.venueId;
         if (!id) {
             console.error("TeamStore: Venue ID is not available.");
             return;

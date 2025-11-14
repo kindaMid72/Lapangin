@@ -30,11 +30,15 @@ route.get('/get_team/:venueId', async (req, res) => {
         const sbAdmin = await createSupabaseAccess();
     
         // perform data fetching
-        const {data: allMemberData, error: getAllMemberDataError} = await sbAdmin
+        let {data: allMemberData, error: getAllMemberDataError} = await sbAdmin
             .from('user_venues')
-            .select('user_id, role, invited_by, is_active', {count: 'exact'})
+            .select('user_id, role, invited_by, is_active, phone, name, email', {count: 'exact'})
             .eq('venue_id', venueId);
-            if(getAllMemberDataError) return res.status(403).json({message: 'data fetching error, place try again, or contact support'})
+            if(getAllMemberDataError){
+                console.error(getAllMemberDataError);
+                return res.status(403).json({message: 'data fetching error, place try again, or contact support'})
+            }
+
         // config data for total mamber, total active, total non-active
         const totalMember = allMemberData.length
         const totalActive = allMemberData.filter(member => member.is_active).length

@@ -8,6 +8,7 @@ import getUserId from "../../libs/supabase/getUserId.js";
  */
 // utils
 import checkAdminAccess from '../../middlewares/auth/checkAdminAccess.js';
+import createUserInstance from '../../libs/supabase/user.js';
 
 import createSlug from "../../utils/createSlug.js";
 
@@ -30,6 +31,8 @@ route.post('/create_new_venue', async (req, res) => { // PASS
          * 2. create new venue instance
          * 3. connect new venue to users that create that venue by assign it in user_vanues as a 'owner'
          */
+        const {data: userInstance, errorUser} = await (await createUserInstance(req.headers.authorization)).auth.getUser();
+        if(errorUser) return res.status(403).json({message: errorUser.message});
 
         // extract data from request
         const vanueName = req.body.vanueName;
@@ -38,6 +41,10 @@ route.post('/create_new_venue', async (req, res) => { // PASS
         const description = req.body.description || "";
         const timezone = req.body.timezone || "Asia/Jakarta";
         const slug = createSlug(vanueName);
+
+        const userName = userInstance.user?.email.split('@')[1];
+        const userEmail = userInstance.user?.email;
+        const userPhone = null;
 
         // create new venue instance
         const { data, error } = await supabase
@@ -59,13 +66,22 @@ route.post('/create_new_venue', async (req, res) => { // PASS
             return res.status(401).json({ message: error.message });
         }
 
-        console.log(data);
         const newVenueId = data[0]?.id; // data will return array of effected row, this will access the first row (the only row that been returned)
         // send request
         const { data: data2, error: error2 } = await supabase
             .from('user_venues')
             .insert([
-                { user_id: userId, venue_id: newVenueId, role: 'owner', invited_by: null, invite_status: 'accepted' }
+                { 
+                    user_id: userId, 
+                    venue_id: newVenueId, 
+                    role: 'owner', 
+                    invited_by: null, 
+                    invite_status: 'accepted', 
+                    is_active: true, 
+                    email: userEmail, 
+                    phone: userPhone, 
+                    name: userName 
+                } // TODO:  add email, name , phone
             ])
         if (error2) {
             console.log('from venuesController:', error2);
