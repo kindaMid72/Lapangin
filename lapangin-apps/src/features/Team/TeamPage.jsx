@@ -6,12 +6,17 @@ import { Temporal } from '@js-temporal/polyfill';
 
 // library
 
+// FIXME: fetch gagal
+
 
 //components
-import MemberEditPage from "./MemberEditPage.jsx";
 import InfoCard from "../components/InfoCard";
 import UserRowsData from "./UserRowsData";
 import ConfirmationMessage from "../components/ConfirmationMessage";
+import PopUpMessage from '../components/PopUpMessage';
+// Pages component
+import MemberEditPage from "./MemberEditPage.jsx";
+import InviteMember from './InviteMember.jsx';
 
 // utils
 
@@ -30,9 +35,13 @@ export default function TeamPage() {
     const [member, setMember] = useState([]); // store all member from this venue, this is local state
     const [totalMember, setTotalMember] = useState(0);
     const [totalActive, setTotalActive] = useState(0);
-    const [totalNonActive, setTotalNonActive] = useState(0);
-    const [showEditPage, setShowEditPage] = useState(false);
     const [selectedMember, setSelectedMember] = useState(null);
+    const [totalNonActive, setTotalNonActive] = useState(0);
+
+    const [showInviteMemberPage, setShowInviteMemberPage] = useState(false);
+    const [showEditPage, setShowEditPage] = useState(false);
+
+    const [popUpMessage, setPopUpMessage] = useState(null);
 
     // handler
 
@@ -54,11 +63,24 @@ export default function TeamPage() {
 
     return (
         <>
+    {popUpMessage && <PopUpMessage 
+        title={popUpMessage?.title}
+        message={popUpMessage?.message }
+        titleColor={popUpMessage?.titleColor}
+        onClose={() => setPopUpMessage(null)} // un mount the element
+    />}
+
+    {showInviteMemberPage && <InviteMember 
+        onClose={() => setShowInviteMemberPage(null)}
+        setPopUpMessage={setPopUpMessage}
+    />}
     {showEditPage && <MemberEditPage 
         selectedMember={selectedMember} 
         onClose={() => {setShowEditPage(false); setSelectedMember(null); }} // reset local state after edit page closed 
-
+        setPopUpMessage={setPopUpMessage}
     />}
+
+
     <div className="min-h-screen h-fit bg-white dark:bg-gray-800">
         {/* header section */}
         <div className="flex justify-start w-full p-4 h-fit dark:bg-gray-800"> {/** header */}
@@ -66,13 +88,12 @@ export default function TeamPage() {
                 <h1 className="text-xl font-extrabold">Kelola Tim</h1>
                 <p className="text-sm font-light">Atur anggota tim dan izin akses mereka</p>
             </div>
-            <div className="flex gap-3 rounded-xl bg-green-800 hover:bg-green-700 px-4 py-2 h-fit justify-around items-center w-fit">
+            <div onClick={() => {setShowInviteMemberPage(true)}} className="flex cursor-pointer gap-3 rounded-xl bg-green-800 hover:bg-green-700 px-4 py-2 h-fit justify-around items-center w-fit">
                 <i className="fa-solid fa-user-plus"></i>
                 <p>Tambah Anggota</p>
             </div>
         </div>
 
-        {/* info view card section FIXME: info card tidak aktif tidak menampilkan angka yang seharunay (gada angka)*/} 
         <div className="flex flex-wrap justify-evenly content-stretch gap-3 p-4 [&>*]:flex-1 ">
             <InfoCard title="Total Anggota" value={totalMember} icon={<i className="fa-solid fa-users-rays text-green-300"></i>} />
             <InfoCard title="Aktif" value={totalActive} icon={<i className="fa-solid fa-user-check text-blue-300"></i>} />

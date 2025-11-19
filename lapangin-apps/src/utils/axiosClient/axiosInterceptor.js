@@ -58,7 +58,7 @@ axiosInterceptor.interceptors.response.use(
                 })
                     .then(token => { // jika resolve terjadi, token baru akan dibuat untuk requst retry
                         originalRequest.headers.Authorization = `Bearer ${token}`;
-                        return axiosInterceptor(originalRequest); // retry requst
+                        return axiosInterceptor(originalRequest); // retry request
                     })
                     .catch(err => {
                         Promise.reject(err);
@@ -87,6 +87,7 @@ axiosInterceptor.interceptors.response.use(
 
             }
         }
+        return error;
 
     }
 )

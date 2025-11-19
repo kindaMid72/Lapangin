@@ -15,7 +15,7 @@ import ConfirmationMessage from '../components/ConfirmationMessage';
 // components
 import ToggleButton from '../components/ToggleButton';
 
-export default function MemberEditPage({ selectedMember, onClose }) {
+export default function MemberEditPage({ selectedMember, onClose, setPopUpMessage }) {
     const { team, getTeam } = useTeamStore();
     const { venueMetadata, getVenueMetadata, activeVenue } = useVenueStore();
 
@@ -66,7 +66,7 @@ export default function MemberEditPage({ selectedMember, onClose }) {
         setError(null);
         try {
             // check input 
-            if(name.length === 0 || phone.length === 0 || role.length !== 0) {
+            if(name.length === 0 || role.length === 0) {
                 setError('please enter all fields');
                 setIsLoading(false);
                 return;
@@ -78,7 +78,18 @@ export default function MemberEditPage({ selectedMember, onClose }) {
                 role: role,
                 isActive: isActive
             })
+            .then(res => {
+                if(res.status === 403){
+                    setPopUpMessage({title: 'Update gagal', message: 'update gagal karena policies, jangan melakukan edit yang menghilangkan akses terakhir ke CourtSpace ini', titleColor: 'red'})
+                }else if(res.status === 500){
+                    setPopUpMessage({title: 'Gagal Memperbarui Pengguna', message: 'server gagal memperbarui, coba lagi!', titleColor: 'red'})
+                }
+                else{
+                    setPopUpMessage({title: 'Update Berhasil', message: 'pengguna berhasil diperbarui', titleColor: 'green' })
+                }
+            })
             .catch(err => {
+                setPopUpMessage({title: 'Gagal Memperbarui Pengguna', message: 'server gagal memperbarui, coba lagi!'})
                 console.log(err);
             })
             await getTeam(); // refresh team data after update, ensure data is up to date after editing
@@ -94,6 +105,20 @@ export default function MemberEditPage({ selectedMember, onClose }) {
         setError(null);
         try{
             await api.delete(`/team/delete_member/${activeVenue.venueId || venueMetadata.id}/${selectedMember.email}`)
+            .then(res => {
+                if(res.status === 403){
+                    setPopUpMessage({title: 'Update gagal', message: 'update gagal karena policies, jangan melakukan edit yang menghilangkan akses terakhir ke CourtSpace ini', titleColor: 'red'})
+                }else if(res.status === 500){
+                    setPopUpMessage({title: 'Gagal Menghapus Pengguna', message: 'server gagal memperbarui, coba lagi!', titleColor: 'red'})
+                }
+                else{
+                    setPopUpMessage({title: 'Hapus Pengguna Berhasil', message: 'pengguna berhasil dihapus dari tim', titleColor: 'green' })
+                }
+            })
+            .catch(err => {
+                setPopUpMessage({title: 'Gagal Memperbarui Pengguna', message: 'server gagal memperbarui, coba lagi!'})
+                console.log(err);
+            })
             await getTeam(); // refresh team data after update, ensure data is up to date after editing
             onClose(); // close edit page after save changes
         }catch(err){
@@ -120,7 +145,8 @@ export default function MemberEditPage({ selectedMember, onClose }) {
             title="Hapus Akses Pengguna?"
             message={"Menghapus berarti pengguna ini tidak akan lagi mendapat akses."}
             onConfirm={() => {deleteUser(); setConfirmDelete(false);}}
-            onCancel={() => setConfirmDelete(false)}
+            onCancel={() => setConfirmDelete(false)} 
+            confirmColor='red'
             delayConfirm={true}
             delaySecond={3}
         />}
@@ -167,7 +193,7 @@ export default function MemberEditPage({ selectedMember, onClose }) {
                 </form>
                 {error && <p className="text-red-400 text-sm text-center mt-4">{error}</p>}
                 <div className="flex justify-end gap-4 pt-6 mt-6 border-t border-gray-700">
-                    <button type="button" onClick={onClose} disabled={isLoading} className="px-4 py-2 rounded-xl bg-gray-600 hover:bg-gray-500 cursor-pointer">Batal</button>
+                    <button type="button" onClick={onClose} disabled={isLoading} className={`px-4 py-2 rounded-xl bg-gray-600 hover:bg-gray-500 cursor-pointer ${isLoading || !changesOccured? 'cursor-not-allowed' : 'cursor-pointer'}`}>Batal</button>
                     <button type="submit" disabled={!changesOccured || isLoading} onClick={(e) => { if(changesOccured) handleSubmit(e); }} className={`px-4 py-2 rounded-xl bg-${changesOccured ? 'green' : 'gray'}-700 hover:bg-${changesOccured ? 'green' : 'gray'}-600 disabled:bg-gray-500 ${isLoading? 'cursor-not-allowed' : 'cursor-pointer'}`}>
                         {isLoading ? 'Menyimpan...' : 'Simpan'}
                     </button>

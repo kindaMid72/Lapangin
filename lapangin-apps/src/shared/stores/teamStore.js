@@ -18,7 +18,7 @@ const useTeamStore = create((set, get) => ({
             if (!venueMetadata) { // make sure there is a venue metadata
                 await getVenueMetadata(id);
             }
-
+            
             await api.get(`/team/get_team/${id}`)
                 .then(res => res.data.data)
                 .then(data => {
