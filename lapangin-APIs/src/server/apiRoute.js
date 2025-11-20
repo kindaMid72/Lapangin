@@ -11,6 +11,7 @@ import TeamController from '../modules/team/teamControllers.js';
 
 // microsites
 import CourtMicrositeController from '../modules/microsites/courtMicrositeControllers.js';
+import AvaillabilityRules from '../modules/availability/availabilityRulesControllers.js'
 
 
 
@@ -28,6 +29,8 @@ route.use('/team', TeamController);
 
 // microsites (all request to these path will be available publicly)
 route.use('/courtMicrosite', CourtMicrositeController);
+route.use('/publicAvailability', AvaillabilityRules)
+
 
 // TODO: venueCourt route entry point
 

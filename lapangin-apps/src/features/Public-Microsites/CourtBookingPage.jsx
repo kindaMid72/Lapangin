@@ -4,8 +4,18 @@ import React, {useEffect, useRef, useState} from 'react';
 // compontes
 import SlotCard from './components/SlotCard';
 
+// api
+import { getSelectedDateException } from '@/Apis/booking/courtMicrositeAvailability';
+import { useParams } from 'next/navigation';
+
 export default function BookingPage(){
+    const params = useParams();
+
     const [selectedDate, setSelectedDate] = useState((new Date()).toISOString().split('T')[0]); // TODO: venue timezome, config later, fetch timezone from database
+
+    const [isDateAvailable, setIsDateAvailable] = useState(true);
+    const [error, setError] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     /**
      * to create slot instance, fetch startTime, endTime, slotInstance
@@ -13,9 +23,19 @@ export default function BookingPage(){
 
     // components
 
+
     useEffect(() => {
         // 1. check if selected date is available for booking, if not avail, return an error message
-        
+        getSelectedDateException(params.court_id, selectedDate)
+            .then(res => {
+                setIsDateAvailable(res);
+            })
+            .catch(err => {
+                setError(err);
+            })
+            .finally(() => {
+                setIsLoading(false);
+            })
 
         // 2. check for exsited schedules (booked, held, blocked, or free(default))
 
@@ -48,10 +68,16 @@ export default function BookingPage(){
                     <i className='fa-regular fa-clock'></i>
                     <p className=''>Slot akan di-hold selama <b>10 menit</b> setelah Anda masuk ke pembayaran.</p>
                 </h2>
-                <div>
-                    {/** create slot schedules instance here */}
+                {isLoading? <h1>loading...</h1>: 
+                    <div>
+                        {!isDateAvailable ? <h1>not available</h1>:
+                            <div> yes, this avail</div>
+                        
+                        }
+                        {/** create slot schedules instance here */}
 
-                </div>
+                    </div>
+                }
             </div>
         </div>
     </>)

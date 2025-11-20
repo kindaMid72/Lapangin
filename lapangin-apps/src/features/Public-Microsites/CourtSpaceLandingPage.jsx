@@ -9,7 +9,7 @@ import CourtViewCard from "@/features/Public-Microsites/components/CourtViewCard
 
 
 export default function PublicCourtSpace({ data, }) {
-    console.log('fetched data', data);
+    // console.log('fetched data', data);
 
     const courtSpace = data.courtSpace;
     const courts = data.courts;

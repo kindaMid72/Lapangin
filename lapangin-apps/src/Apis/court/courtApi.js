@@ -1,16 +1,10 @@
 import axios from 'axios';
-import api from '@/utils/axiosClient/axiosInterceptor.js';
+import api from '@/utils/axiosClient/axiosPublicRealtimeInterceptor.js';
 import { exportTraceState } from "next/dist/trace"
 
 async function getCourtsForMicrosites(venueId){
 
-    const data = await api.get(`/courtMicrosite/get_court_info/${venueId}`, {
-        headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-            Pragma: 'no-cache',
-            Expires: '0'
-        }
-    })
+    const data = await api.get(`/courtMicrosite/get_court_info/${venueId}`)
     .then(res => {
         return res.data;
     })
