@@ -65,8 +65,6 @@ export default function SignInPage() {
         setEmail('');
         setPassword('');
         setConfirmPassword('');
-
-        console.log(await supabase.auth.getSession());
     }
 
     return (

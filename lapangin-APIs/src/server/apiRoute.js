@@ -9,6 +9,10 @@ import VanueController from '../modules/venues/venuesControllers.js';
 import SlotAvailability from '../modules/courts/slotAvailability.js';
 import TeamController from '../modules/team/teamControllers.js';
 
+// microsites
+import CourtMicrositeController from '../modules/microsites/courtMicrositeControllers.js';
+
+
 
 
 const route = express.Router();
@@ -21,6 +25,10 @@ route.use('/availabilityRules', AvailabilityController);
 route.use('/availabilityException', AvailabilityExceptionControllers);
 route.use('/courtAvailability', SlotAvailability)
 route.use('/team', TeamController);
+
+// microsites (all request to these path will be available publicly)
+route.use('/courtMicrosite', CourtMicrositeController);
+
 // TODO: venueCourt route entry point
 
 
