@@ -89,7 +89,11 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                 .then(data => {
                     /**
                      * data: 
-                     * nonAvailableSlots: [], <-- {start_time, end_time, status ('free','held','booked','blocked'), id (for slots instance manipulation purposes)}
+                     * nonAvailableSlots: [], <-- {
+                     *                                  start_time (timezoneset), end_time (timezoneset), 
+                     *                                  status ('free','held','booked','blocked'), 
+                     *                                  id (for slots instance manipulation purposes) <-- nonAvailability Id
+                     *                             }
                      * openTime: "08:00:00",
                      * closeTime: "20:00:00,
                      * slotDurationMinutes: 30 or 60, (int)
@@ -97,6 +101,7 @@ export default function CourtSchedulePage({ court, show, onClose }) {
 
                     let { nonAvailableSlots, openTime, closeTime, slotDurationMinutes } = data; // extract data from response
                     // console.log('raw nonAvailable (utc): ', nonAvailableSlots); // kembalikan dateString UTC format
+
 
                     // buat slot berdasarkan template slotDurationMinutes
                     // 1. kalkulasi banyak slot yang akan di buat di tanggal itu
@@ -182,6 +187,8 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                         return false;
                     }
                     // set status for all nonAvailableSlots
+                    // FIXME: perbaiki kesalahan di sini
+                    // schedule yang dikirim sudah benar, start dan end time 
                     for (let i = 0; i < temp.length; i++) {
                         if (nonAvailableSlots.length > pointer) {
                             const occupied = checkIfOccupied(temp[i].startTime.epochMilliseconds, temp[i].endTime.epochMilliseconds, nonAvailableSlots[pointer].start_time.epochMilliseconds, nonAvailableSlots[pointer].end_time.epochMilliseconds);

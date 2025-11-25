@@ -28,13 +28,15 @@ route.post('/get_court_availability_for_given_date', async (req, res) => {
 
         const sbAdmin = await createSupabaseAccess();
 
+        // get slot duration
         const { data: slotDuration, error: getSlotDurationError } = await sbAdmin
             .from('slot_templates')
             .select('slot_duration_minutes')
             .eq('court_id', courtId);
         if (getSlotDurationError) return res.status(400).json({ message: 'something went wrong' });
 
-        const { data: nonAvailableSlots, error: getNonAvailableSlotsError } = await sbAdmin
+        // get non-available schedule, return utc timestamptz, convert it to venue time zone
+        let { data: nonAvailableSlots, error: getNonAvailableSlotsError } = await sbAdmin
             .from('slot_instances')
             .select('start_time, end_time, status, id')
             .eq('court_id', courtId)
@@ -42,6 +44,26 @@ route.post('/get_court_availability_for_given_date', async (req, res) => {
             .eq('slot_date', date); 
         if (getNonAvailableSlotsError) return res.status(400).json({ message: 'something went wrong' });
 
+        // convert timezone to venue timezone, first, get the zonetime for that venueId
+        const { data: courtSpaceTimeZone, error: courtSpaceTimeZoneError } = await sbAdmin 
+            .from('venues')
+            .select('timezone')
+            .eq('id', venueId);
+            if(courtSpaceTimeZoneError){
+                console.error('from slotavail: ', courtSpaceTimeZoneError);
+                return res.sendStatus(500);
+            }
+
+            nonAvailableSlots.forEach(slot => {
+                slot.start_time = Temporal.Instant.from(slot.start_time)
+                                    .toZonedDateTimeISO(courtSpaceTimeZone[0].timezone)
+                                    .toString().split('[')[0];
+                slot.end_time = Temporal.Instant.from(slot.end_time)
+                                    .toZonedDateTimeISO(courtSpaceTimeZone[0].timezone)
+                                    .toString().split('[')[0];
+            })
+
+        // get open close time
         const { data: courtOpenCloseTime, error: courtOpenCloseTimeError } = await sbAdmin
             .from('availability_rules')
             .select('open_time, close_time')
@@ -97,7 +119,6 @@ route.post('/insert_new_court_schedule', async (req, res) => {
         // request goes here
 
         // console.log(startTime.split('[')[0], endTime.split('[')[0]);
-        //FIXME: request return 400, bad request
         const {data,  error: setNewAvailabilityError } = await sbAdmin
             .from('slot_instances')
             .insert([
@@ -106,7 +127,7 @@ route.post('/insert_new_court_schedule', async (req, res) => {
                     start_time: startTime.split('[')[0], // make sure date string that been passed is in timestamptz format
                     end_time: endTime.split('[')[0],
                     status: status,
-                    slot_date: slotDate
+                    slot_date: slotDate // venue timezone date
                 }
             ]).select();
             // console.log('data been insert in slot_instances: ', data);

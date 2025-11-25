@@ -13,7 +13,8 @@ async function getSelectedDateException(courtId, date) {
     return isAvailable;
 }
 async function getSlotsForSelectedDate() {
-   
+    const data = null;
+    return data;
 }
 
 

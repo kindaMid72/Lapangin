@@ -11,11 +11,15 @@ import { useParams } from 'next/navigation';
 export default function BookingPage(){
     const params = useParams();
 
-    const [selectedDate, setSelectedDate] = useState((new Date()).toISOString().split('T')[0]); // TODO: venue timezome, config later, fetch timezone from database
-
+    
     const [isDateAvailable, setIsDateAvailable] = useState(true);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    // data state    
+    const [selectedDate, setSelectedDate] = useState((new Date()).toISOString().split('T')[0]);
+    const [slots, setSlots] = useState([]); // array of object (object -> {start_time, end_time, status)
+    
 
     /**
      * to create slot instance, fetch startTime, endTime, slotInstance
@@ -38,7 +42,7 @@ export default function BookingPage(){
             })
 
         // 2. check for exsited schedules (booked, held, blocked, or free(default))
-
+        
 
     }, [selectedDate])
 
@@ -70,12 +74,19 @@ export default function BookingPage(){
                 </h2>
                 {isLoading? <h1>loading...</h1>: 
                     <div>
-                        {!isDateAvailable ? <h1>not available</h1>:
-                            <div> yes, this avail</div>
-                        
+                        {!isDateAvailable ? 
+                        <>
+                            {/** create slot schedules instance here */}
+                            {/* pesan tidak tersedia di sini */}
+                            <h1>not available</h1>
+                        </>
+                        :
+                        <>
+                            {/* set slots di sini */}
+                            <div> yes, this avail</div> 
+                        </>
                         }
-                        {/** create slot schedules instance here */}
-
+                    
                     </div>
                 }
             </div>
