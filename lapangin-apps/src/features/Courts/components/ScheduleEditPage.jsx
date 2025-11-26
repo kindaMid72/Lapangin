@@ -120,7 +120,6 @@ export default function SlotCard({selectedDate, courtId, schedule, onClose, onCo
             delayCancel={false}
             
         />}
-        <div className="fixed h-full w-full z-45 bg-gray-900/50 backdrop-blur-xs"></div>
 
         <div className='flex relative border-1 border-gray-600 flex-col gap-2 rounded-lg p-3 w-full z-46'>
             <i onClick={() => { onClose(); }} className='fa-solid fa-xmark absolute right-3 top-3 cursor-pointer hover:text-red-400 transition-colors duration-100 ease-in'></i>

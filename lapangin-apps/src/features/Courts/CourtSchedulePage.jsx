@@ -172,7 +172,6 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                         })
                     }
 
-
                     setSlots(slotTemp);
                     setNonAvailable(nonAvailableSlots);
 
@@ -260,6 +259,7 @@ export default function CourtSchedulePage({ court, show, onClose }) {
             const startTime = Temporal.PlainDateTime.from(`${selectedDate}T${newStartTime}`).toZonedDateTime(venueMetadata.timezone); // set local time by plaindateTime, then assign timezone from venue metadata
             const endTime = Temporal.PlainDateTime.from(`${selectedDate}T${newEndTime}`).toZonedDateTime(venueMetadata.timezone);
             const slotDate = selectedDate;
+            setNewScheduleError(null);
 
             if (!(status === 'held' || status === 'booked' || status === 'blocked')) {
                 setNewScheduleError('Invalid status');
@@ -271,36 +271,36 @@ export default function CourtSchedulePage({ court, show, onClose }) {
             }
             setNewScheduleLoading(true);
 
-
-            await api.post('/courtAvailability/insert_new_court_schedule', {
-                venueId: venueId,
-                courtId: courtId,
-                startTime: startTime,
-                endTime: endTime,
-                status: status,
-                slotDate: slotDate
-            })
-                .catch(err => {
-                    console.error(err);
-                })
-                .finally(res => {
-                    getSlotsForSelectedDate(); // trigger update for given date
-                    setNewStartTime('');
-                    setNewEndTime('');
-                    setNewStatus('booked');
-                    setNewScheduleError(null); // close new schedule form
-
-                    setNewScheduleLoading(false); // return to default state, regardless the result
-                })
+            setTimeout( async () => {
+                await api.post('/courtAvailability/insert_new_court_schedule', {
+                    venueId: venueId,
+                    courtId: courtId,
+                    startTime: startTime,
+                    endTime: endTime,
+                    status: status,
+                    slotDate: slotDate
+                }) 
+                    .then(res => {
+                        console.log(res);
+                        if(res.status === 400){
+                            setNewScheduleError(res.data?.message ?? 'Something went wrong')
+                        }
+                    })
+                    .catch(err => {
+                        setNewScheduleError(err.message)
+                    })
+                    .finally(res => {
+                        getSlotsForSelectedDate(); // trigger update for given date
+                        setNewStartTime('');
+                        setNewEndTime('');
+                        setNewStatus('booked');
+    
+                        setNewScheduleLoading(false); // return to default state, regardless the result
+                    })
+                
+            }, 20);
         } catch (err) {
             console.error('handle new schedules error: ', err);
-        }
-    }
-    async function handleSchedulesUpdate() {
-        try {
-
-        } catch (err) {
-            console.error(err);
         }
     }
 

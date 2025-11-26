@@ -118,6 +118,29 @@ route.post('/insert_new_court_schedule', async (req, res) => {
         // console.log(req.body);
         // request goes here
 
+        // TODO: check if any overlap
+        const {data: existingSchedules, error: getExistingSchedulesError} = await sbAdmin
+            .from('slot_instances')
+            .select('start_time, end_time')
+            .eq('court_id', courtId)
+            .eq('slot_date', slotDate);
+
+        const isOverlap = existingSchedules.some(existingSchedule => {
+            const startInstant = Temporal.Instant.from(existingSchedule.start_time).epochMilliseconds
+            const endInstant = Temporal.Instant.from(existingSchedule.end_time).epochMilliseconds
+            const newStartInstant = Temporal.Instant.from(startTime).epochMilliseconds
+            const newEndInstant = Temporal.Instant.from(endTime).epochMilliseconds
+
+            return (
+                (startInstant <= newStartInstant && newStartInstant <= endInstant) ||
+                (startInstant <= newEndInstant && newEndInstant <= endInstant) ||
+                (newStartInstant <= startInstant && newEndInstant >= endInstant)
+            );
+        });
+        if(isOverlap) return res.sendStatus(400);
+
+        
+
         // console.log(startTime.split('[')[0], endTime.split('[')[0]);
         const {data,  error: setNewAvailabilityError } = await sbAdmin
             .from('slot_instances')
@@ -171,6 +194,10 @@ route.put('/update_court_schedule/:venueId/:scheduleId',async (req, res) => {
         // check user access, this is staff based access
         const userHasAccess = await checkUserAccess(req.headers.authorization, venueId);
         if(!userHasAccess) return res.status(401).json({message: 'access denied, token expired or user didnt have access'});
+
+        
+        // check if any overlap with existing schedules
+        const isOverlap = true
 
         const sbAdmin = await createSupabaseAccess(); // create supabase access
         const {error: updateScheduleError, data: updatedSchedule} = await sbAdmin
