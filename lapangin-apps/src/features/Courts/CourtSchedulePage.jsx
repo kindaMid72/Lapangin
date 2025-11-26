@@ -95,124 +95,89 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                      *                                  id (for slots instance manipulation purposes) <-- nonAvailability Id
                      *                             }
                      * openTime: "08:00:00",
-                     * closeTime: "20:00:00,
+                     * closeTime: "20:00:00",
                      * slotDurationMinutes: 30 or 60, (int)
                      */
 
                     let { nonAvailableSlots, openTime, closeTime, slotDurationMinutes } = data; // extract data from response
                     // console.log('raw nonAvailable (utc): ', nonAvailableSlots); // kembalikan dateString UTC format
+                    // 1. buat slot instance sesuai jam buka dan tutup, pakai object date mentah
+                    // 2. set status for each slot
+                    if(!venueMetadata) return;
 
 
-                    // buat slot berdasarkan template slotDurationMinutes
-                    // 1. kalkulasi banyak slot yang akan di buat di tanggal itu
-                    const openHour = (openTime.split(':')[0]);
-                    const closeHour = (closeTime.split(':')[0]);
-                    let totalMaximumSlots = (parseInt(closeHour) - parseInt(openHour)) * 2; // if we assume each slots is 30minutes
+                    const startTime = Temporal.PlainTime.from(openTime);
+                    const endTime = Temporal.PlainTime.from(closeTime);
 
-                    const openMinutes = (openTime.split(':')[1]);
-                    const closeMinutes = (closeTime.split(':')[1]);
+                    let slotTemp = []; // container for slots instant (temporary) before set to global state
 
-                    if (openMinutes == '30' && closeMinutes == '00') {
-                        totalMaximumSlots -= 1;
-                    } else if (openMinutes == '00' && closeMinutes == '30') {
-                        totalMaximumSlots += 1;
-                    }
-                    // console.log({ activeVenue });
-
-                    // 2. set slot kosong ke dalam slots
-                    const totalSlots = Math.floor(totalMaximumSlots / (slotDurationMinutes / 30)); // div by 1 if 30, div by 2 if 60
-
-                    let temp = [];
-                    for (let i = parseInt(openHour); i <= parseInt(closeHour); i++) {
-                        let start = 0;
-                        // untuk yang pertama, check dulu apakah jadwal buka mulai dari 30 menit, jika iya, set start ke 30
-                        if ((openMinutes === '30' && slotDurationMinutes === 60) || (openMinutes === '30' && i === parseInt(openHour))) {
-                            start = 30;
-                        }
-                        for (let j = start; j < 60; j += slotDurationMinutes) {
-                            const endMinute = j + slotDurationMinutes;
-                            let startTime = `${String(i).padStart(2, '0')}:${String(j).padStart(2, '0')}`;
-                            let endTime = `${j + slotDurationMinutes < 60 ? String(i).padStart(2, '0') : String(i + 1).padStart(2, '0')}:${j + slotDurationMinutes < 60 ? String(j + slotDurationMinutes).padStart(2, '0') : (openMinutes === '30' && slotDurationMinutes === 60 ? '30' : '00')}`;
-                            startTime = Temporal.PlainDateTime.from(`${selectedDate}T${startTime}`).toZonedDateTime(venueMetadata.timezone);
-                            endTime = Temporal.PlainDateTime.from(`${selectedDate}T${endTime}`).toZonedDateTime(venueMetadata.timezone);
-
-                            temp.push({
-                                startTimeString: `${String(i).padStart(2, '0')}:${String(j).padStart(2, '0')}`,
-                                endTimeString: `${j + slotDurationMinutes < 60 ? String(i).padStart(2, '0') : String(i + 1).padStart(2, '0')}:${j + slotDurationMinutes < 60 ? String(j + slotDurationMinutes).padStart(2, '0') : (openMinutes === '30' && slotDurationMinutes === 60 ? '30' : '00')}`,
-                                // cek jika penambahan menit menyebabkan perubahan jam, jika iya, tambahkan 1 jam di i
-                                // dan untuk menitnya, jika j menciptakan jam baru (j + lompatan >= 60menit), check tempat awal (30 atau 00), dan set di, set 00 jika 30lompatan, set 30 jika 60lompatan                        kondisi jam jadi x:30 setelah lompatan hanya mungkin di step 60 menit
-                                isBooked: false,
-                                isBlocked: false,
-                                isHold: false,
-                                startTime: startTime,
-                                endTime: endTime
-                            })
-                        }
-                    }
-                    // hapus jadwal yang kelebihan
-                    if (temp.length > totalSlots) {
-                        temp.splice(totalSlots);
-                    }
-                    
-                    // 3. set nonAvailableSlots ke dalam slots, dan berikan mark
-                    //nonAvailableSlots: [], <-- {start_time, end_time, status ('free','held','booked','blocked'), id}
-                    let pointer = 0; // pointer of nonAvailableSlots
-                    nonAvailableSlots = nonAvailableSlots.map(item => {
-                        item.start_time = Temporal.Instant.from(`${item.start_time}`).toZonedDateTimeISO(venueMetadata?.timezone); // convert utc to date, then convert utc to venue timezone
-                        item.end_time = Temporal.Instant.from(`${item.end_time}`).toZonedDateTimeISO(venueMetadata?.timezone);
-                        return item;
+                    // add Temporal version of time to non available slots
+                    nonAvailableSlots.forEach(item => {
+                        // Convert start_time and end_time (which are likely ISO strings with timezone from the DB)
+                        // directly to ZonedDateTime objects.
+                        item.startTime = Temporal.Instant.from(item.start_time).toZonedDateTimeISO(venueMetadata.timezone);
+                        item.endTime = Temporal.Instant.from(item.end_time).toZonedDateTimeISO(venueMetadata.timezone);
+                    });
+                    // sort nonAvailableSlots asc
+                    nonAvailableSlots = nonAvailableSlots.sort((a, b) => {
+                        return Temporal.PlainTime.compare(a.startTime, b.startTime);
                     })
-                    nonAvailableSlots.sort((a, b) => {
-                        if (a.start_time.epochMilliseconds < b.start_time.epochMilliseconds) {
-                            return -1;
-                        } else if (a.start_time.epochMilliseconds > b.start_time.epochMilliseconds) {
-                            return 1;
-                        } else {
-                            return 0;
-                        }
-                    })
-                    // set global state nonAvailable
-                    
-                    // Cara yang lebih baik untuk debugging: Gunakan forEach atau map ke objek baru 
-                    
-                    function checkIfOccupied(aStart, aEnd, bStart, bEnd) {
-                        // check if one or all this condition were match
-                        if (bStart === aStart && bEnd === aEnd) { // if they are equal
+                    let nonAvailPointer = 0; // this will point to a valid nonAvailableSlots element 
+
+                    function checkIfOccupied(cStart, cEnd, sStart, sEnd) {
+                        // c = current time, s = schedule time
+                        // check if current time occupied
+                        if (cStart <= sStart && cEnd >= sStart) {
                             return true;
-                        } else if (bStart <= aStart && bEnd > aStart) { // based on aStart
+                        }else if(sStart <= cStart && sEnd > cStart){
                             return true;
-                        } else if (bStart < aEnd && bEnd >= aEnd) { // based on aEnd
+                        }else if ( sStart <= cEnd && sEnd >= cEnd) {
                             return true;
                         }
-                        return false;
+
+                        return false; // return false if not
                     }
-                    // set status for all nonAvailableSlots
-                    // FIXME: perbaiki kesalahan di sini
-                    // schedule yang dikirim sudah benar, start dan end time 
-                    for (let i = 0; i < temp.length; i++) {
-                        if (nonAvailableSlots.length > pointer) {
-                            const occupied = checkIfOccupied(temp[i].startTime.epochMilliseconds, temp[i].endTime.epochMilliseconds, nonAvailableSlots[pointer].start_time.epochMilliseconds, nonAvailableSlots[pointer].end_time.epochMilliseconds);
-                            if (occupied) {
-                                if (nonAvailableSlots[pointer].status === 'held') {
-                                    temp[i].isHold = true;
-                                } else if (nonAvailableSlots[pointer].status === 'booked') {
-                                    temp[i].isBooked = true;
-                                } else if (nonAvailableSlots[pointer].status === 'blocked') {
-                                    temp[i].isBlocked = true;
-                                }
+                    for (let startSlot = startTime; Temporal.PlainTime.compare(startSlot, endTime) < 0; startSlot = startSlot.add({ minutes: slotDurationMinutes })) {
+                        const slotEnd = startSlot.add({ minutes: slotDurationMinutes });
+                        let status = 'free';
+                        // check if the nonAvailable candidate is in this current startSlot - endSlot time frame
+                        // move pointer until the time range of element[ponter] didnt match the current time frame 
+                        const tempSlotStart = Temporal.PlainDateTime.from(`${selectedDate}T${startSlot.toString({ smallestUnit: 'second' })}`).toZonedDateTime(venueMetadata.timezone);
+                        const tempSlotEnd = Temporal.PlainDateTime.from(`${selectedDate}T${slotEnd.toString({ smallestUnit: 'second' })}`).toZonedDateTime(venueMetadata.timezone);
+                        while (nonAvailPointer < nonAvailableSlots.length &&
+                            (nonAvailableSlots[nonAvailPointer].startTime.epochMilliseconds < tempSlotEnd.epochMilliseconds)
+                        ) {
+                            // check if current slot endTime < nonAvail[pointer], if so
+                            // check if its occupied the current time frame
+                            if (checkIfOccupied(
+                                tempSlotStart.epochMilliseconds, tempSlotEnd.epochMilliseconds,
+                                nonAvailableSlots[nonAvailPointer].startTime.epochMilliseconds, nonAvailableSlots[nonAvailPointer].endTime.epochMilliseconds)
+                            ) {
+                                status = nonAvailableSlots[nonAvailPointer].status;
+                                break;
                             }
-                            if (temp[i].startTime.epochMilliseconds > nonAvailableSlots[pointer].end_time.epochMilliseconds) { // increase pointer if nonAvail[pointer] is been passed
-                                pointer++;
-                            }
-                            
+                            // FIXME: bisa saja schedule occupied lebih dari 1
+                            nonAvailPointer++; // continue checking until while condition didnt satisfied
                         }
+
+                        if (Temporal.PlainTime.compare(slotEnd, endTime) > 0) break;
+                        slotTemp.push({
+                            startTime: startSlot,
+                            endTime: slotEnd,
+                            startTimeString: startSlot.toString().slice(0, 5),
+                            endTimeString: slotEnd.toString().slice(0, 5),
+                            isBooked: status === 'booked', // set slot status based on status been setted
+                            isBlocked: status === 'blocked',
+                            isHold: status === 'held'
+                        })
                     }
-                    // console.log("Non-available slots (sorted):", nonAvailableSlots.map(item => ({
-                        //     start: item.start_time.toString() ,
-                        //     end: item.end_time.toString()
-                        // })));
-                    setSlots(temp);
-                    setNonAvailable(nonAvailableSlots); // [{start_time, end_time, status, id}, ...]
+
+
+                    setSlots(slotTemp);
+                    setNonAvailable(nonAvailableSlots);
+
+                    // set slot status based on nonAvailable slots
+
                 })
                 .catch(err => {
                     console.log(err);
