@@ -96,7 +96,7 @@ route.post('/insert_new_court_schedule', async (req, res) => {
         const status = req.body?.status;
         const startTime = req.body?.startTime; // timestamptz, zone set to venue timezone
         const endTime = req.body?.endTime; // timestamptz, zone set to venue timezone
-        const slotDate = req.body?.slotDate
+        const slotDate = req.body?.slotDate;
 
         const userHasAccess = await checkUserAccess(req.headers.authorization, venueId); // this is staff base access
         if (!userHasAccess) return res.status(401).json({ message: 'access denied, token expired or user didnt have access' });

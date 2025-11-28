@@ -12,11 +12,18 @@ async function getSelectedDateException(courtId, date) {
 
     return isAvailable;
 }
-async function getSlotsForSelectedDate() {
-    const data = null;
+async function getSlotsForSelectedDate(venueId, courtId, date) {
+    const data = await api.get(`/publicAvailability/get_court_schedule_for_selected_date/${venueId}/${courtId}/${date}`)
+        .then(res => {
+            return res.data;
+        })
+        .catch(err => {
+            console.error(err)
+        })
+
     return data;
 }
 
 
-export {getSelectedDateException};
-export default {getSelectedDateException};
+export {getSelectedDateException, getSlotsForSelectedDate};
+export default {getSelectedDateException, getSlotsForSelectedDate};

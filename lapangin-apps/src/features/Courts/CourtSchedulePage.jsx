@@ -127,7 +127,7 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                     function checkIfOccupied(cStart, cEnd, sStart, sEnd) {
                         // c = current time, s = schedule time
                         // check if current time occupied
-                        if (cStart <= sStart && cEnd >= sStart) {
+                        if (sStart <= cStart && sEnd >= cEnd) {
                             return true;
                         }else if(sStart <= cStart && sEnd > cStart){
                             return true;
@@ -156,7 +156,6 @@ export default function CourtSchedulePage({ court, show, onClose }) {
                                 status = nonAvailableSlots[nonAvailPointer].status;
                                 break;
                             }
-                            // FIXME: bisa saja schedule occupied lebih dari 1
                             nonAvailPointer++; // continue checking until while condition didnt satisfied
                         }
 

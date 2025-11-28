@@ -3,6 +3,7 @@ import express from 'express';
 import { Temporal } from '@js-temporal/polyfill';
 // utils
 import createAdminInstance from '../../libs/supabase/admin.js';
+import getDayIndex from '../../utils/getDayIndex.js';
 
 // checker
 import checkValidDate from '../../utils/checker/checkValidDate.js';
@@ -109,7 +110,79 @@ route.get('/get_existing_schedules/:venueId/:courtId/:date', async (req, res) =>
     }
 })
 
+route.get('/get_court_schedule_for_selected_date/:venueId/:courtId/:date', async (req, res) => {
+    /** 
+     * params: venueId, courtId, date
+     * 
+     * return: slot_instances(existing schedules, timezone setted)
+     *  ** this is a public request, anyone can make a request **  
+     */
+    const venueId = req.params.venueId;
+    const courtId = req.params.courtId;
+    const date = req.params.date;
 
+    // create admin access
+    const sbAdmin = await createAdminInstance();
+
+    // get timezone
+    const {data: courtSpaceTimezone, error: courtSpaceTimezoneError} = await sbAdmin
+        .from('venues')
+        .select('timezone')
+        .eq('id', venueId)
+        .eq('is_active', true);
+        if(courtSpaceTimezoneError){
+            console.error('error from courtMicrosite', courtSpaceTimezoneError)
+            return res.sendStatus(400)
+        }
+    const timezone = courtSpaceTimezone[0].timezone;
+
+    // get court schedules
+    let {data: courtSchedules, error: courtSchedulesError} = await sbAdmin
+        .from('slot_instances')
+        .select('id, start_time, end_time, status')
+        .eq('court_id', courtId)
+        .eq('slot_date', date);
+        if(courtSchedulesError){
+            console.error('error from courtMicrosite', courtSchedulesError)
+            return res.sendStatus(400)
+        }
+    
+        // set timezone to courtSchedules
+        courtSchedules.forEach( schedule => {
+            schedule.start_time = Temporal.Instant.from(schedule.start_time).toZonedDateTimeISO(timezone).toString().split('[')[0];
+            schedule.end_time = Temporal.Instant.from(schedule.end_time).toZonedDateTimeISO(timezone).toString().split('[')[0];
+
+        })
+
+    // get selected date start & end time for slot generation
+    const dayIndex = getDayIndex(date);
+    let { data: dayAvailability, error: dayAvailabilityError } = await sbAdmin
+        .from('availability_rules')
+        .select('open_time, close_time')
+        .eq('court_id', courtId)
+        .eq('day_of_week', dayIndex);
+    
+        if(dayAvailabilityError){
+            console.error('error from courtMicrosite', dayAvailabilityError)
+            return res.sendStatus(400)
+        }
+    
+    // get slot duration
+    const { data: slotDuration, error: slotDurationError } = await sbAdmin
+        .from('courts')
+        .select('slot_duration_minutes')
+        .eq('id', courtId);
+    
+
+    return res.status(200).json({
+        courtSchedules: courtSchedules, 
+        openTime: dayAvailability[0].open_time, 
+        closeTime: dayAvailability[0].close_time,
+        slotDuration: slotDuration[0].slot_duration_minutes,
+        timezone: timezone
+    });
+
+})
 
 
 export default route;
