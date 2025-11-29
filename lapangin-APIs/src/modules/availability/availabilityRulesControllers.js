@@ -153,9 +153,18 @@ route.get('/get_court_schedule_for_selected_date/:venueId/:courtId/:date', async
             schedule.end_time = Temporal.Instant.from(schedule.end_time).toZonedDateTimeISO(timezone).toString().split('[')[0];
 
         })
+    
+    let price = 99999999999;
+    const {data:priceForThatDay, error: priceForThatDayError} = await sbAdmin
+        .from('courts')
+        .select('weekday_slot_price, weekend_slot_price')
+        .eq('id', courtId);
+
+        const dayIndex = getDayIndex(date);
+        if(dayIndex > 4) price = priceForThatDay[0].weekend_slot_price;
+        else price = priceForThatDay[0].weekday_slot_price
 
     // get selected date start & end time for slot generation
-    const dayIndex = getDayIndex(date);
     let { data: dayAvailability, error: dayAvailabilityError } = await sbAdmin
         .from('availability_rules')
         .select('open_time, close_time')
@@ -172,6 +181,10 @@ route.get('/get_court_schedule_for_selected_date/:venueId/:courtId/:date', async
         .from('courts')
         .select('slot_duration_minutes')
         .eq('id', courtId);
+        if(slotDurationError) {
+            console.error(slotDurationError);
+            return res.sendStatus(500);
+        }
     
 
     return res.status(200).json({
@@ -179,7 +192,8 @@ route.get('/get_court_schedule_for_selected_date/:venueId/:courtId/:date', async
         openTime: dayAvailability[0].open_time, 
         closeTime: dayAvailability[0].close_time,
         slotDuration: slotDuration[0].slot_duration_minutes,
-        timezone: timezone
+        timezone: timezone,
+        price: price
     });
 
 })

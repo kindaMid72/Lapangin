@@ -1,20 +1,27 @@
 'use client'
 
+
+/**
+ * TODO: each day price rules
+ */
 import { Temporal } from '@js-temporal/polyfill';
 
-import React, {useEffect, useRef, useState} from 'react';
+import { useEffect, useState } from 'react';
 
 // compontes
-import SlotCard from './components/SlotCard';
+
+// utils
+import numberToRupiah from '@/utils/formatChanger/numberToRupiah.js';
+
 
 // api
 import { getSelectedDateException, getSlotsForSelectedDate } from '@/Apis/booking/courtMicrositeAvailability';
 import { useParams } from 'next/navigation';
 
-export default function BookingPage(){
+export default function BookingPage() {
     const params = useParams();
 
-    
+
     const [isDateAvailable, setIsDateAvailable] = useState(true);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -22,11 +29,15 @@ export default function BookingPage(){
     // data state    
     const [selectedDate, setSelectedDate] = useState((new Date()).toISOString().split('T')[0]);
     const [slots, setSlots] = useState([]); // array of object (object -> {start_time, end_time, status)
-    
+
 
     // ui state
-    const [mousePos, setMousePos] = useState({x: -9999999, y: -9999999})
+    const [mousePos, setMousePos] = useState({ x: -9999999, y: -9999999 })
     const [slotStatus, setSlotStatus] = useState('');
+    const [slotPrice, setSlotPrice] = useState(1000000000);
+
+    const [selectedSlot, setSelectedSlot] = useState([]); // containt timestapmtz of each selected slot (startTime, endTime) <- this is havent set to dateteme, only time
+
     /**
      * to create slot instance, fetch startTime, endTime, slotInstance
      */
@@ -46,13 +57,16 @@ export default function BookingPage(){
                 setError(err);
             })
 
-        
+
         // 2. check for exsited schedules (booked, held, blocked, or free(default))
-        if(!dateAvailable) return;
+        if (!dateAvailable) return;
         getSlotsForSelectedDate(params.venue_id, params.court_id, selectedDate)
             .then(res => {
                 // TODO: set slots view based on data
-                let {courtSchedules, openTime, closeTime, slotDuration, timezone} = res;
+                let { courtSchedules, openTime, closeTime, slotDuration, timezone, price } = res;
+
+                // set price
+                setSlotPrice(price);
 
                 const startTime = Temporal.PlainTime.from(`${openTime}`);
                 const endTime = Temporal.PlainTime.from(`${closeTime}`);
@@ -78,9 +92,9 @@ export default function BookingPage(){
                     // check if current time occupied
                     if (sStart <= cStart && sEnd >= cEnd) {
                         return true;
-                    }else if(sStart <= cStart && sEnd > cStart){
+                    } else if (sStart <= cStart && sEnd > cStart) {
                         return true;
-                    }else if ( sStart <= cEnd && sEnd >= cEnd) {
+                    } else if (sStart <= cEnd && sEnd >= cEnd) {
                         return true;
                     }
 
@@ -116,7 +130,8 @@ export default function BookingPage(){
                         endTimeString: slotEnd.toString().slice(0, 5),
                         isBooked: status === 'booked', // set slot status based on status been setted
                         isBlocked: status === 'blocked',
-                        isHold: status === 'held'
+                        isHold: status === 'held',
+                        selected: false // for uis, true if element selected for bookings
                     })
                 }
                 console.log(slotTemp);
@@ -129,6 +144,7 @@ export default function BookingPage(){
                 setError(err);
             })
             .finally(() => {
+                setSelectedSlot([]); // empty the selected state after selected date changing
                 setIsLoading(false);
             })
 
@@ -136,16 +152,16 @@ export default function BookingPage(){
     }, [selectedDate])
 
     // ui handler
-    const mouseIn = (event) =>{
-        setMousePos({x: event.clientX, y: event.clientY})
+    const mouseIn = (event) => {
+        setMousePos({ x: event.clientX + 10, y: event.clientY - 30 })
     }
     const mouseOut = (event) => {
-        setMousePos({x: -9999999, y: -9999999});
+        setMousePos({ x: -9999999, y: -9999999 });
     }
 
-    
+
     return (<>
-        <div className="[&_*]:text-black w-full min-h-screen flex flex-col items-center justify-start p-4 px-12 gap-5">
+        <div className="[&_*]:text-black w-full min-h-screen flex flex-col items-center justify-start p-4 px-12 gap-5 scrollbar-hide">
             <div className='w-full flex flex-col justify-between gap-4'> {/* navigation section */}
                 <button className="flex items-center justify-start gap-2"><i className="fa-solid fa-arrow-left"></i>Kembali</button>
                 <div>
@@ -153,65 +169,121 @@ export default function BookingPage(){
                     <h3>Pilih tanggal dan sesi yang Anda inginkan.</h3>
                 </div>
             </div>
-            
+
             {/** date selection section */}
             <div className="w-full flex flex-col items-start justify-center p-4 rounded-2xl shadow-[0_0_25px_rgba(0,0,0,0.2)] bg-white gap-3"> {/* date selection */}
-                <h1 className='px-2 '>Pilih Tanggal</h1> 
+                <h1 className='px-2 '>Pilih Tanggal</h1>
                 <div className='w-full p-2 py-3 rounded-xl flex items-center justify-stretch border-1 border-gray-300 focus-within:border-green-800 '>
-                    <input type={'date'} value={selectedDate} onChange={(e) => {setSelectedDate(e.target.value);}} className=' border-gray-500  rounded-xl'></input>
+                    <input type={'date'} value={selectedDate} onChange={(e) => { setSelectedDate(e.target.value); }} className=' border-gray-500  rounded-xl'></input>
                 </div>
             </div>
 
             {/** schedule selection section */}
             <div className="w-full flex flex-col items-start justify-center p-5 rounded-2xl shadow-[0_0_25px_rgba(0,0,0,0.2)] bg-white gap-3"> {/* date selection */}
-                <h1 className='px-2 '>Pilih Sesi Waktu</h1> 
+                <h1 className='px-2 '>Pilih Sesi Waktu</h1>
                 <h2 className='flex gap-2 justify-start items-center px-2 py-3 rounded-xl border-[#fdeec6] border-[1px] bg-[#fefaef] w-full'>
                     <i className='fa-regular fa-clock'></i>
-                    <p className=''>Slot akan di-hold selama <b>10 menit</b> setelah Anda masuk ke pembayaran.</p>
+                    <p className=''>Sesi akan di-hold selama <b>10 menit</b> setelah Anda masuk ke pembayaran.</p>
                 </h2>
-                {isLoading? <h1>loading...</h1>: 
-                    <div>
-                        {!isDateAvailable ? 
-                        <>
-                            {/** create slot schedules instance here */}
-                            {/* pesan tidak tersedia di sini */}
-                            <h1 className='!text-red-600 p-4 opacity-70'>Lapangan tutup di tanggal ini, silahkan pilih tanggal lain.</h1>
-                        </>
-                        :
-                        <>
-                            {/* set slots di sini */}
-                            <div className='relative grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2'>
-                                <div className='fixed w-fit h-fit flex justify-center items-center rounded-xl overflow-hidden p-2 ' style={{left: mousePos.x, top: mousePos.y}}>
-                                    <p  className={`text-center content-center rounded-xl p-2 ${slotStatus === 'booked' ? 'bg-orange-400 hover:bg-orange-300' : ''} ${slotStatus === 'blocked' ? 'bg-red-600 line-through hover:bg-red-500' : ''} ${slotStatus === 'held'? 'bg-yellow-400 hover:bg-yellow-300' : 'bg-gray-100 hover:bg-green-100 hover:shadow-[0px_0px_10px_rgba(0,0,0,0.5]'}`}
-                                    >{slotStatus}</p>
-                                </div>
-                                {slots.length > 0 ? slots.map(slot => (
-                                    <div key={slot.startTimeString} onMouseEnter={() => {
-                                            const status = slot.isBooked ? 'booked' : slot.isBlocked ? 'blocked' : slot.isHold ? 'held' : 'free';
-                                            setSlotStatus(status);
-                                        }}>
-                                        <div
-                                            onMouseMove={(e) => {
-                                                mouseIn(e);
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                mouseOut(e);
-                                            }}
-                                            key={slot.startTimeString}
-                                            className={`p-5 text-center rounded-lg cursor-pointer transition-all duration-200 ease-in-out ${slot.isBooked ? 'bg-orange-400 hover:bg-orange-300' : ''} ${slot.isBlocked ? 'bg-red-600 line-through hover:bg-red-500' : ''} ${slot.isHold ? 'bg-yellow-400 hover:bg-yellow-300' : 'bg-gray-100 hover:bg-green-100 hover:shadow-[0px_0px_10px_rgba(0,0,0,0.5]'}`}
-                                        >
-                                            {slot.startTimeString} - {slot.endTimeString}
-                                        </div>
+                {isLoading ? <h1>loading...</h1> :
+                    <div className='w-full'>
+                        {!isDateAvailable ?
+                            <>
+                                {/** create slot schedules instance here */}
+                                {/* pesan tidak tersedia di sini */}
+                                <h1 className='!text-red-600 p-4 opacity-70'>Lapangan tutup di tanggal ini, silahkan pilih tanggal lain.</h1>
+                            </>
+                            :
+                            <>
+                                {/* set slots di sini */}
+                                <div className='relative grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2'>
+                                    <div className='fixed w-fit h-fit flex justify-center items-center rounded-xl overflow-hidden px-2 ' style={{ left: mousePos.x, top: mousePos.y }}>
+                                        <p className={`text-center content-center rounded-lg px-2  ${slotStatus !== 'available' ? 'bg-red-400/30 hover:bg-red-300' : 'bg-green-200/30 hover:bg-green-100 hover:shadow-[0px_0px_10px_rgba(0,0,0,0.5]'}`}
+                                        >{slotStatus}</p>
                                     </div>
-                                )) : <p>Loading...</p>}
+                                    {slots.length > 0 ? slots.map(slot => (
+                                        <div
+                                            onClick={() => {
+                                                // TODO: set selected slot for booking
+                                                const setSelect = !slot.selected;
+                                                // set to global state
+                                                setSlots(prevSelectedSlots => {
+                                                    return prevSelectedSlots.map(item => {
+                                                        if (item.startTimeString === slot.startTimeString) {
+                                                            return { ...item, selected: setSelect };
+                                                        }
+                                                        return item;
+                                                    });
+                                                })
 
-                            </div>
-                        </>
+                                                if(slot.isBlocked || slot.isHold || slot.isBooked) return;
+                                                setSelectedSlot(prevSelectedSlots => {
+                                                    // Find index of the slot based on its startTime (assuming startTime is unique)
+                                                    const existingIndex = prevSelectedSlots.findIndex(
+                                                        item => Temporal.PlainTime.compare(item.startTime, slot.startTime) === 0
+                                                    );
+
+                                                    if (existingIndex > -1) {
+                                                        // If it exists, return a new array without that slot
+                                                        return prevSelectedSlots.filter((_, index) => index !== existingIndex);
+                                                    }
+                                                    // If it doesn't exist, return a new array with the new slot added
+                                                    return [...prevSelectedSlots, { startTime: slot.startTime, endTime: slot.endTime }];
+                                                })
+                                            }}
+                                            key={slot.startTimeString} onMouseEnter={() => {
+                                                const status = slot.isBooked || slot.isHold || slot.isBlocked ? 'not-available' : 'available';
+                                                setSlotStatus(status);
+                                            }}>
+                                            <div
+                                                onMouseMove={(e) => {
+                                                    mouseIn(e);
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    mouseOut(e);
+                                                }}
+                                                key={slot.startTimeString}
+                                                className={`p-5 text-center rounded-lg cursor-pointer transition-all border-2 duration-200 ease-in-out ${slot.selected? 'border-green-500 bg-green-100' : 'border-gray-200'} ${slot.selected? 'border-green-500' : 'border-gray-300'} hover:bg-green-100 hover:border-green-500 hover:shadow-[0px_0px_10px_rgba(0,0,0,0.5]
+                                                 ${slot.isBlocked || slot.isHold || slot.isBooked ? '!bg-red-300 line-through !border-red-400 !hover:border-red-400' : ''}`}
+                                            >
+                                                {slot.startTimeString} - {slot.endTimeString}
+                                            </div>
+                                        </div>
+                                    )) : <p>Loading...</p>}
+
+                                    {/* price section, show selected slot price and serve a payment button page if any available slot selected */}
+
+                                </div>
+
+                                {selectedSlot.length > 0 &&
+                                    <div className='mt-3 z-39 px-7 py-4 rounded-xl bg-white shadow-[0px_0px_8px_rgba(0,0,0,0.1)] flex flex-col justify-between items-center '>
+                                        <div className='flex justify-between items-center w-full'>
+                                            <div> {/** slot taken info */}
+                                                <h1 className='!text-gray-600'>Total Jadwal dipilih</h1>
+                                                <h2 className='!text-green-500 text-lg font-bold'>{selectedSlot.length} Sesi</h2>
+                                            </div>
+
+                                            <div> {/* price info */}
+                                                <h1 className='!text-gray-600'>Total harga</h1>
+                                                <h2 className='!text-green-500 text-lg'>{ numberToRupiah(String(selectedSlot.length * slotPrice)) }</h2>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                }
+                            </>
                         }
-                    
+
                     </div>
                 }
             </div>
+            {selectedSlot.length > 0  && 
+                <div className='w-full flex justify-end items-center px-10'>
+                    <button className='flex justify-end gap-2 !text-white font-bold  items-center p-2 px-3 w-fit rounded-xl bg-green-700 hover:bg-green-600 transition-color duration-150 cursor-pointer' type='button'> {/** payment button */}
+                        Lanjut Pembayaran <i className='fa-solid fa-arrow-right !text-white '></i>
+                    </button>
+                </div>
+            }
         </div>
     </>)
 }

@@ -7,7 +7,7 @@ export default async function BookingPage(){
     const data = null; // TODO: bangun api untuk reaquest model data
 
     return(
-        <div className="">
+        <div className="scrollbar-hide overflow-auto">
             <CourtSheduleSelectionPage  />
         </div>
     )
