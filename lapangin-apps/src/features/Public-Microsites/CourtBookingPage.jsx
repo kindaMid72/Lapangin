@@ -8,7 +8,7 @@ import { Temporal } from '@js-temporal/polyfill';
 
 import { useEffect, useState } from 'react';
 
-// compontes
+// compontess
 
 // utils
 import numberToRupiah from '@/utils/formatChanger/numberToRupiah.js';
@@ -16,11 +16,11 @@ import numberToRupiah from '@/utils/formatChanger/numberToRupiah.js';
 
 // api
 import { getSelectedDateException, getSlotsForSelectedDate } from '@/Apis/booking/courtMicrositeAvailability';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter  } from 'next/navigation';
 
 export default function BookingPage() {
     const params = useParams();
-
+    const router = useRouter();
 
     const [isDateAvailable, setIsDateAvailable] = useState(true);
     const [error, setError] = useState(null);
@@ -164,6 +164,15 @@ export default function BookingPage() {
 
     }, [selectedDate])
 
+
+    // handler
+    function handlePaymentPageButton() {
+        router.push(`/booking_now/${params.venue_id}/${params.court_id}/payment`)
+    }
+    function handleBackButton(){
+        router.push(`/booking_now/${params.venue_id}`)
+    }
+
     // ui handler
     const mouseIn = (event) => {
         setMousePos({ x: event.clientX + 10, y: event.clientY - 30 })
@@ -176,7 +185,7 @@ export default function BookingPage() {
     return (<>
         <div className="[&_*]:text-black w-full min-h-screen flex flex-col items-center justify-start p-4 px-12 gap-5 scrollbar-hide">
             <div className='w-full flex flex-col justify-between gap-4'> {/* navigation section */}
-                <button className="flex items-center justify-start gap-2"><i className="fa-solid fa-arrow-left"></i>Kembali</button>
+                <button type='button' onClick={() => {handleBackButton()}} className="flex group items-center justify-start gap-2 hover:!text-green-500 transition-colors duration-100 ease-in-out cursor-pointer"><i className="fa-solid fa-arrow-left group-hover:!text-green-500 transition-colors duration-100 ease-in-out"></i>Kembali</button>
                 <div>
                     <h1>Lapangan Futsal 1</h1>
                     <h3>Pilih tanggal dan sesi yang Anda inginkan.</h3>
@@ -233,7 +242,7 @@ export default function BookingPage() {
                                                 setSelectedSlot(prevSelectedSlots => {
                                                     // Find index of the slot based on its startTime (assuming startTime is unique)
                                                     const existingIndex = prevSelectedSlots.findIndex(
-                                                        item => Temporal.PlainTime.compare(item.startTime, slot.startTime) === 0
+                                                        item => Temporal.Instant.compare(item.startTime, slot.startTime) === 0
                                                     );
 
                                                     if (existingIndex > -1) {
@@ -256,11 +265,11 @@ export default function BookingPage() {
                                                     mouseOut(e);
                                                 }}
                                                 key={slot.startTimeString}
-                                                className={`p-5 text-center rounded-lg cursor-pointer transition-all border-2 duration-200 ease-in-out ${slot.selected ? 'border-green-500 bg-green-100' : 'border-gray-200'} ${slot.selected ? 'border-green-500' : 'border-gray-300'} hover:bg-green-100 hover:border-green-500 hover:shadow-[0px_0px_10px_rgba(0,0,0,0.5]
-                                                 ${slot.isBlocked || slot.isHold || slot.isBooked ? '!bg-gray-300 line-through !border-gray-400 !hover:border-gray-400' : ''}`}
+                                                className={`p-5 text-center rounded-lg cursor-pointer transition-all border-2 duration-200 ease-in-out ${slot.selected ? 'border-green-500 bg-green-100' : 'border-gray-400'} ${slot.selected ? 'border-green-500' : 'border-gray-300'}  hover:border-green-500 hover:shadow-[0px_0px_10px_rgba(0,0,0,0.5]
+                                                 ${slot.isBlocked || slot.isHold || slot.isBooked ? '!bg-gray-50 !border-gray-200 !hover:border-gray-400 !text-gray-500' : ''}`}
                                             >
-                                                <p>{slot.startTimeString} - {slot.endTimeString}</p>
-
+                                                <p className={`${slot.isBlocked || slot.isHold || slot.isBooked ? '!text-gray-300' : '!text-gray-500'} font-extrabold `}>{slot.startTimeString} - {slot.endTimeString}</p>
+                                                { !(slot.isBlocked || slot.isHold || slot.isBooked)? <p className='text-sm !text-gray-500'>{numberToRupiah(String(slotPrice)).split(',')[0]}</p> : <p className='!text-gray-300 text-sm font-bold'>Terlewati</p>}
                                             </div>
                                         </div>
                                     )) : <p>Loading...</p>}
@@ -279,7 +288,7 @@ export default function BookingPage() {
 
                                             <div> {/* price info */}
                                                 <h1 className='!text-gray-600'>Total harga</h1>
-                                                <h2 className='!text-green-500 text-lg'>{numberToRupiah(String(selectedSlot.length * slotPrice))}</h2>
+                                                <h2 className='!text-green-500 text-lg'>{numberToRupiah(String(selectedSlot.length * slotPrice)).split(',')[0]}</h2>
                                             </div>
                                         </div>
 
@@ -293,7 +302,7 @@ export default function BookingPage() {
             </div>
             {selectedSlot.length > 0 &&
                 <div className='w-full flex justify-end items-center px-10'>
-                    <button className='flex justify-end gap-2 !text-white font-bold  items-center p-2 px-3 w-fit rounded-xl bg-green-700 hover:bg-green-600 transition-color duration-150 cursor-pointer' type='button'> {/** payment button */}
+                    <button onClick={() => {handlePaymentPageButton()}} className='flex justify-end gap-2 !text-white font-bold  items-center p-2 px-3 w-fit rounded-xl bg-green-700 hover:bg-green-600 transition-color duration-150 cursor-pointer' type='button'> {/** payment button */}
                         Lanjut Pembayaran <i className='fa-solid fa-arrow-right !text-white '></i>
                     </button>
                 </div>
