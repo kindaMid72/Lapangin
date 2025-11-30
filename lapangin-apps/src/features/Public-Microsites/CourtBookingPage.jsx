@@ -2,7 +2,7 @@
 
 
 /**
- * TODO: each day price rules
+ * FIXME: error in current time comparison, issue occured after changes applied
  */
 import { Temporal } from '@js-temporal/polyfill';
 
@@ -37,6 +37,8 @@ export default function BookingPage() {
     const [slotPrice, setSlotPrice] = useState(1000000000);
 
     const [selectedSlot, setSelectedSlot] = useState([]); // containt timestapmtz of each selected slot (startTime, endTime) <- this is havent set to dateteme, only time
+    const [currentTime, setCurrentTime] = useState(() => Temporal.Now.instant());
+
 
     /**
      * to create slot instance, fetch startTime, endTime, slotInstance
@@ -44,6 +46,16 @@ export default function BookingPage() {
 
     // components
 
+    // handler for currentTime
+    useEffect(() => {
+        // Set up an interval to update the current time every minute
+        const intervalId = setInterval(() => {
+            setCurrentTime(Temporal.Now.instant());
+        }, 60000); // 60000 ms = 1 minute
+
+        // Clean up the interval when the component unmounts to prevent memory leaks
+        return () => clearInterval(intervalId);
+    }, []); // Empty dependency array ensures this effect runs only once on mount
 
     useEffect(() => {
         let dateAvailable = true;
@@ -81,9 +93,10 @@ export default function BookingPage() {
                     item.startTime = Temporal.Instant.from(item.start_time).toZonedDateTimeISO(timezone);
                     item.endTime = Temporal.Instant.from(item.end_time).toZonedDateTimeISO(timezone);
                 });
+
                 // sort courtSchedules asc
-                courtSchedules = courtSchedules.sort((a, b) => {
-                    return Temporal.PlainTime.compare(a.startTime, b.startTime);
+                courtSchedules.sort((a, b) => {// PASS
+                    return Temporal.Instant.compare(a.startTime.toInstant(), b.startTime.toInstant());
                 })
                 let nonAvailPointer = 0; // this will point to a valid courtSchedules element 
 
@@ -106,7 +119,7 @@ export default function BookingPage() {
                     // check if the nonAvailable candidate is in this current startSlot - endSlot time frame
                     // move pointer until the time range of element[ponter] didnt match the current time frame 
                     const tempSlotStart = Temporal.PlainDateTime.from(`${selectedDate}T${startSlot.toString({ smallestUnit: 'second' })}`).toZonedDateTime(timezone);
-                    const tempSlotEnd = Temporal.PlainDateTime.from(`${selectedDate}T${slotEnd.toString({ smallestUnit: 'second' })}`).toZonedDateTime(timezone);
+                    const tempSlotEnd = Temporal.PlainDateTime.from(`${selectedDate}T${slotEnd.toString({ smallestUnit: 'second' })}`).toZonedDateTime(timezone); // now containt only timestamptz
                     while (nonAvailPointer < courtSchedules.length &&
                         (courtSchedules[nonAvailPointer].startTime.epochMilliseconds < tempSlotEnd.epochMilliseconds)
                     ) {
@@ -124,17 +137,17 @@ export default function BookingPage() {
 
                     if (Temporal.PlainTime.compare(slotEnd, endTime) > 0) break;
                     slotTemp.push({
-                        startTime: startSlot,
-                        endTime: slotEnd,
+                        startTime: tempSlotStart.toInstant(), // for comparation only, containt Temporal.Instant
+                        endTime: tempSlotEnd.toInstant(),
                         startTimeString: startSlot.toString().slice(0, 5),
                         endTimeString: slotEnd.toString().slice(0, 5),
-                        isBooked: status === 'booked', // set slot status based on status been setted
+                        isBooked: (status === 'booked') || (Temporal.Instant.compare(tempSlotEnd.toInstant(), currentTime) < 0), // set the state to be blocked if the time have been passed
                         isBlocked: status === 'blocked',
                         isHold: status === 'held',
                         selected: false // for uis, true if element selected for bookings
                     })
                 }
-                console.log(slotTemp);
+                console.log(slotTemp); // ga sampai sini
                 setSlots(slotTemp);
 
                 // set slot status based on nonAvailable slots
@@ -216,7 +229,7 @@ export default function BookingPage() {
                                                     });
                                                 })
 
-                                                if(slot.isBlocked || slot.isHold || slot.isBooked) return;
+                                                if (slot.isBlocked || slot.isHold || slot.isBooked) return;
                                                 setSelectedSlot(prevSelectedSlots => {
                                                     // Find index of the slot based on its startTime (assuming startTime is unique)
                                                     const existingIndex = prevSelectedSlots.findIndex(
@@ -243,10 +256,11 @@ export default function BookingPage() {
                                                     mouseOut(e);
                                                 }}
                                                 key={slot.startTimeString}
-                                                className={`p-5 text-center rounded-lg cursor-pointer transition-all border-2 duration-200 ease-in-out ${slot.selected? 'border-green-500 bg-green-100' : 'border-gray-200'} ${slot.selected? 'border-green-500' : 'border-gray-300'} hover:bg-green-100 hover:border-green-500 hover:shadow-[0px_0px_10px_rgba(0,0,0,0.5]
-                                                 ${slot.isBlocked || slot.isHold || slot.isBooked ? '!bg-red-300 line-through !border-red-400 !hover:border-red-400' : ''}`}
+                                                className={`p-5 text-center rounded-lg cursor-pointer transition-all border-2 duration-200 ease-in-out ${slot.selected ? 'border-green-500 bg-green-100' : 'border-gray-200'} ${slot.selected ? 'border-green-500' : 'border-gray-300'} hover:bg-green-100 hover:border-green-500 hover:shadow-[0px_0px_10px_rgba(0,0,0,0.5]
+                                                 ${slot.isBlocked || slot.isHold || slot.isBooked ? '!bg-gray-300 line-through !border-gray-400 !hover:border-gray-400' : ''}`}
                                             >
-                                                {slot.startTimeString} - {slot.endTimeString}
+                                                <p>{slot.startTimeString} - {slot.endTimeString}</p>
+
                                             </div>
                                         </div>
                                     )) : <p>Loading...</p>}
@@ -265,7 +279,7 @@ export default function BookingPage() {
 
                                             <div> {/* price info */}
                                                 <h1 className='!text-gray-600'>Total harga</h1>
-                                                <h2 className='!text-green-500 text-lg'>{ numberToRupiah(String(selectedSlot.length * slotPrice)) }</h2>
+                                                <h2 className='!text-green-500 text-lg'>{numberToRupiah(String(selectedSlot.length * slotPrice))}</h2>
                                             </div>
                                         </div>
 
@@ -277,7 +291,7 @@ export default function BookingPage() {
                     </div>
                 }
             </div>
-            {selectedSlot.length > 0  && 
+            {selectedSlot.length > 0 &&
                 <div className='w-full flex justify-end items-center px-10'>
                     <button className='flex justify-end gap-2 !text-white font-bold  items-center p-2 px-3 w-fit rounded-xl bg-green-700 hover:bg-green-600 transition-color duration-150 cursor-pointer' type='button'> {/** payment button */}
                         Lanjut Pembayaran <i className='fa-solid fa-arrow-right !text-white '></i>
