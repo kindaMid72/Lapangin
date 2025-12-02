@@ -1,54 +1,100 @@
 'use client'
 
 // imports
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation.js';
+
+// sub-page components
+import EditPaymentCard from './EditPaymentPage.jsx';
+import NewPaymentCard from './NewPaymentCard.jsx';
 
 // components
 import ToggleButton from '../components/ToggleButton';
+import EditButton from '../components/EditButton';
+
+
+// stores
+import useVenueStore from '@/shared/stores/venueStore';
+
+// api
+import api from '@/Apis/payment/adminPayment.js';
+
 
 
 export default function PaymentSetting() {
+    const {venue_id} = useParams();
 
-    // Dummy states for toggles
-    const [qrPayment, setQrPayment] = useState(true);
-    const [manualTransfer, setManualTransfer] = useState(true);
-    const [gopay, setGopay] = useState(true);
-    const [ovo, setOvo] = useState(false);
-    const [dana, setDana] = useState(true);
-    const [autoConfirm, setAutoConfirm] = useState(true);
-    const [downPayment, setDownPayment] = useState(false);
+
+    // state
+    const [showNewPaymentModal, setShowNewPaymentModal] = useState(false);
+    const [showEditPaymentModal, setShowEditPaymentModal] = useState(false);
+    const [payments, setPayments] = useState([]);
+
+    // stores
+
+    async function fetchData() {
+        const data = await api.getAllPayment(venue_id);
+        setPayments(data);
+    }
+
+    useEffect(() => {
+        fetchData();
+    }, [])
 
     // components
-    function PaymentSettingCard({ title, description, isActive, onClick }) {
+    function PaymentSettingCard({ title, description, isActive, onClick , object}) {
         return (<>
-            <div className='w-full flex justify-between items-center border-gray-500 border-1 p-3 rounded-xl'>
+            <div className='w-full flex justify-between items-center border-gray-300 dark:border-gray-700 border p-3 rounded-xl'>
                 <div>
-                    <p className='font-bold'>{title}</p>
-                    <p className='font-extralight text-sm'>{description}</p>
+                    <p className='font-bold text-gray-800 dark:text-gray-100'>{title}</p>
+                    <p className='text-sm text-gray-500 dark:text-gray-400'>{description}</p>
                 </div>
-                <ToggleButton isActive={isActive} onClick={onClick} />
+                <EditButton onClick={() => { setShowEditPaymentModal(object)}}/>
             </div>
         </>)
     }
- 
-    return (
-        <div className="p-3">
-            <div className="rounded-xl bg-gray-300 text-black dark:text-white dark:bg-gray-900 p-4">
-                <h1 className='text-2xl font-extrabold p-3'>Pengaturan Pembayaran</h1>
+
+    return (<>
+
+        {/* TODO: popup message */}
+
+        {showNewPaymentModal && <NewPaymentCard
+            onSave={() => { fetchData(); setShowNewPaymentModal(false);}}
+            onCancel={() => { setShowNewPaymentModal(false); }}
+        />}
+        {showEditPaymentModal && <EditPaymentCard
+            onSave={() => { fetchData(); setShowEditPaymentModal(false); }}
+            onCancel={() => { setShowEditPaymentModal(false); }}
+            paymentData={showEditPaymentModal}
+        />}
+
+        <div className="p-3 bg-gray-100 dark:bg-gray-800 min-h-screen">
+            <div className="rounded-xl bg-white text-black dark:text-white dark:bg-gray-900 p-4">
+                <h1 className='text-2xl font-bold p-3'>Pengaturan Pembayaran</h1>
                 {/* Payment Methods Section */}
-                <div className='flex flex-col justify-between items-center p-3 gap-4 border-gray-500 '>
-                    <h1 className='w-full text-start p-2 text-xl font-extrabold'>Metode Pembayaran Aktif</h1>
-                    <PaymentSettingCard title={'Pembayaran dengan scan QR code'} description={'Aktifkan pembayaran via QRIS.'} isActive={qrPayment} onClick={() => setQrPayment(!qrPayment)} />
-                    <PaymentSettingCard title={'Transfer manual ke rekening venue'} description={'Pelanggan dapat membayar dengan transfer bank manual.'} isActive={manualTransfer} onClick={() => setManualTransfer(!manualTransfer)} />
-                    <PaymentSettingCard title={'GoPay, OVO, DANA, dll'} description={'Aktifkan pembayaran melalui e-wallet populer.'} isActive={gopay || ovo || dana} onClick={() => { setGopay(!gopay); setOvo(!ovo); setDana(!dana); }} />
-                    <div className=' flex justify-center items-center w-full border-gray-500 border-1 h-[50px] p-3 rounded-xl bg-transparent hover:bg-green-700 hover:border-transparent transition-color duration-100 ease-in-out cursor-pointer'>
-                        <p className='text-xl font-extrabold'>+ Tambah Metode Pembayaran</p>
+                <div className='flex flex-col justify-between items-center p-3 gap-4'>
+                    <h1 className='w-full text-start p-2 text-xl font-semibold'>Metode Pembayaran Aktif</h1>
+                    {/* TODO: shot data fetching here  */}
+                    {payments && 
+                        payments.map(payment => (
+                            <PaymentSettingCard
+                                key={`${payment.name}${payment.id}`}
+                                title={payment.name}
+                                description={payment.provider_id}
+                                isActive={payment.is_active}
+                                onClick={() => { }}
+                                object={payment}
+                            />
+                        ))
+                    }
+                    <div onClick={() => setShowNewPaymentModal(true)} className='flex justify-center items-center w-full border-gray-400 border-2 border-dashed h-[50px] p-3 rounded-xl bg-transparent hover:bg-green-50 dark:hover:bg-green-900/50 hover:border-green-500 dark:hover:border-green-600 transition-colors duration-150 ease-in-out cursor-pointer'>
+                        <p className='text-lg font-semibold text-gray-600 dark:text-gray-400 group-hover:text-green-600'>+ Tambah Metode Pembayaran</p>
                     </div>
                 </div>
 
-                <hr className='text-gray-400 my-5' />
+                {/* <hr className='text-gray-400 my-5' /> */}
 
-                {/* Payment Rules Section */}
+                {/* Payment Rules Section
                 <div className='flex flex-col justify-between items-center p-4 gap-4'>
                     <h1 className='w-full text-start text-xl font-extrabold'>
                         Opsi Pembayaran
@@ -67,8 +113,11 @@ export default function PaymentSetting() {
                         </div>
                         <ToggleButton isActive={downPayment} onClick={() => setDownPayment(!downPayment)} />
                     </div>
-                </div>
+                </div> */}
             </div>
         </div>
+
+    </>
+
     )
 }

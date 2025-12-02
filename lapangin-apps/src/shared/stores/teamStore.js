@@ -20,7 +20,7 @@ const useTeamStore = create((set, get) => ({
             }
             
             await api.get(`/team/get_team/${id}`)
-                .then(res => res.data.data)
+                .then(res => res?.data?.data)
                 .then(data => {
                     set({ team: data });
                 })

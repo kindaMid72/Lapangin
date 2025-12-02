@@ -1,15 +1,14 @@
 
+import PaymentPage from '@/features/Public-Microsites/PaymentPage.jsx';
 
-export default async function () {
+export default async function Payment() {
 
     const data = null;
 
 
     return (<>
     
-    oi konz
-    
-    
+        <PaymentPage/>
     
     </>)
 }

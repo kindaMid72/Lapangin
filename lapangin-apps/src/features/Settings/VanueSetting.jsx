@@ -5,8 +5,8 @@
  */
 
 // imports
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useParams, useRouter} from "next/navigation";
 
 // components
 
@@ -20,12 +20,12 @@ import ToggleButton from "../components/ToggleButton";
 
 export default function VanueSetting() {
     const { activeVenue, venueMetadata, setSelectedVenue, getVenueMetadata } = useVenueStore();
-    const {venue_id, user_id} = useParams();
+    const { venue_id, user_id } = useParams();
 
     // state
     const [isLoading, setLoading] = useState(false);
 
-    const [name, setName] = useState( ''); // fetch from database for all initial vanue credentials
+    const [name, setName] = useState(''); // fetch from database for all initial vanue credentials
     const [address, setAddress] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
@@ -39,8 +39,8 @@ export default function VanueSetting() {
 
     // handler
     useEffect(() => {
-        if(!activeVenue) return;
-        getVenueMetadata(activeVenue.venueId); 
+        if (!activeVenue) return;
+        getVenueMetadata(activeVenue.venueId);
     }, [activeVenue]); // trigger update jika activeVenue berubah (user ganti venue)
 
     useEffect(() => {
@@ -57,8 +57,8 @@ export default function VanueSetting() {
 
             setLoading(false);
             return;
-        }else{
-            if(!activeVenue) return;
+        } else {
+            if (!activeVenue) return;
             setLoading(true);
             getVenueMetadata(activeVenue.venueId); // this will assign venueMetadata from data that been fetch from the database
         }
@@ -74,15 +74,15 @@ export default function VanueSetting() {
             description !== (venueMetadata?.description ?? '') ||
             isActive !== (venueMetadata?.is_active ?? '')) ||
             timezone !== (venueMetadata?.timezone ?? '')
-        ){
+        ) {
             setChangeOccured(true);
-        }else{
+        } else {
             setChangeOccured(false);
         }
     }, [name, address, phone, email, description, isActive, venueMetadata, timezone]);
 
     async function handleSubmit() {
-        try{
+        try {
             setLoading(true);
             await api.post(`/venue/update_venue_info/${activeVenue.venueId || venue_id}`, {
                 name: name,
@@ -97,84 +97,102 @@ export default function VanueSetting() {
                 setChangeOccured(false);
                 setLoading(false);
             })
-        }catch(err){
+        } catch (err) {
             console.log(err);
+            setLoading(false); // Make sure to stop loading on error
         }
     }
 
 
     return (
         <>
-        <div className="flex justify-center items-center">
-            <div className="w-full p-6 bg-gray-100 dark:bg-gray-900 m-3 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
-                <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100 flex items-center gap-3">
-                    <i className="fa-solid fa-store"></i>
-                    <input onChange={(e) => { setName(e.target.value); }} value={name} placeholder="Nama Usaha Anda" className="outline-1 rounded-lg p-1 min-w-[10ch] outline-gray-500" style={{ widht: name.length + 'ch' }}></input>
-                </h2>
-
-                <div className="space-y-4 text-gray-700 dark:text-gray-300">
-                    <div className="flex items-start gap-3">
-                        <i className="fa-solid fa-map-location-dot mt-1"></i>
-                        <div className="w-fit">
-                            <p className="font-semibold">Alamat Lengkap</p> {/* min length 5ch  */}
-                            <input onChange={(e) => { setAddress(e.target.value); }} value={address} style={{ width: address?.length + 'ch' }} className="outline-1 rounded-lg p-1 min-w-[10ch] outline-gray-500"></input>
-                        </div>
+            <div className="flex justify-center items-center">
+                <div className="w-full p-6 bg-white dark:bg-gray-900 m-3 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                    {/* Header */}
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Pengaturan Venue</h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola informasi detail untuk venue Anda.</p>
                     </div>
 
-                    <div className="flex items-start gap-3">
-                        <i className="fa-solid fa-phone mt-1"></i>
+                    {/* Form */}
+                    <div className="space-y-4 mt-6 text-gray-700 dark:text-gray-300">
                         <div>
-                            <p className="font-semibold">Nomor Telepon</p>
-                            <input type='tel' onChange={(e) => { setPhone(e.target.value); }} value={phone} style={{ width: phone?.length + 'ch' }} className="outline-1 rounded-lg p-1 min-w-[10ch] outline-gray-500"></input>
+                            <label htmlFor="venue-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Venue</label>
+                            <div className="flex items-center gap-3">
+                                <i className="fa-solid fa-store text-gray-400"></i>
+                                <input id="venue-name" onChange={(e) => setName(e.target.value)} value={name} placeholder="Nama Usaha Anda" className="w-full p-2 bg-transparent dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" />
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="flex items-start gap-3">
-                        <i className="fa-solid fa-envelope mt-1"></i>
                         <div>
-                            <p className="font-semibold">Email</p>
-                            <input type='email' onChange={(e) => { setEmail(e.target.value); }} value={email} style={{ width: email?.length + 'ch' }} className="min-w-[10ch] outline-1 rounded-lg p-1 outline-gray-500"></input>
+                            <label htmlFor="venue-address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alamat Lengkap</label>
+                            <div className="flex items-center gap-3">
+                                <i className="fa-solid fa-map-location-dot text-gray-400"></i>
+                                <input id="venue-address" onChange={(e) => setAddress(e.target.value)} value={address} placeholder="Alamat lengkap venue" className="w-full p-2 bg-transparent dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" />
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                        <i className="fa-solid fa-location-dot mt-1"></i>
+
                         <div>
-                            <p className="font-semibold">Timezone</p>
-                            <select value={timezone} onChange={(e) => { setTimezone(e.target.value); }}  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-fit h-fit p-2.5 dark:bg-transparent dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
-                                {allTimezones.map(tz => (
-                                    <option className="bg-gray-900 text-white" key={tz} value={tz}>
-                                        {tz}
-                                    </option>
-                                ))}
-                            </select>
+                            <label htmlFor="venue-phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nomor Telepon</label>
+                            <div className="flex items-center gap-3">
+                                <i className="fa-solid fa-phone text-gray-400"></i>
+                                <input id="venue-phone" type='tel' onChange={(e) => setPhone(e.target.value)} value={phone} placeholder="Nomor telepon aktif" className="w-full p-2 bg-transparent dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label htmlFor="venue-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                            <div className="flex items-center gap-3">
+                                <i className="fa-solid fa-envelope text-gray-400"></i>
+                                <input id="venue-email" type='email' onChange={(e) => setEmail(e.target.value)} value={email} placeholder="Alamat email venue" className="w-full p-2 bg-transparent dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label htmlFor="venue-timezone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Timezone</label>
+                            <div className="flex items-center gap-3">
+                                <i className="fa-solid fa-clock text-gray-400"></i>
+                                <select id="venue-timezone" value={timezone} onChange={(e) => setTimezone(e.target.value)} className="w-full p-2 bg-transparent dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" required>
+                                    {allTimezones.map(tz => (
+                                        <option className="bg-white dark:bg-gray-800 text-black dark:text-white" key={tz} value={tz}>
+                                            {tz}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label htmlFor="venue-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Deskripsi Venue</label>
+                            <div className="flex items-start gap-3">
+                                <i className="fa-solid fa-circle-info text-gray-400 mt-2"></i>
+                                <textarea id="venue-description" onChange={(e) => setDescription(e.target.value)} value={description} rows="4" className="w-full p-2 bg-transparent dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Jelaskan tentang venue Anda..."></textarea>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-between items-center pt-2">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status Venue</label>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Nonaktifkan jika venue sedang tidak beroperasi.</p>
+                            </div>
+                            <ToggleButton isActive={isActive} onClick={() => setIsActive(!isActive)} />
                         </div>
                     </div>
 
-                    <div className="flex items-start gap-3">
-                        <i className="fa-solid fa-circle-info mt-1"></i>
-                        <div className="w-full">
-                            <p className="font-semibold">Deskripsi Venue</p>
-                            <textarea onChange={(e) => { setDescription(e.target.value) }} value={description} className="h-auto w-full outline-1 rounded-lg p-1 outline-gray-500">
-                            </textarea>
-                        </div>
-                    </div>
-                    <div className="flex flex-col items-start gap-3"> {/* isActive session */}
-                        <div className="flex gap-3">
-                            <i className="fa-solid fa-circle-check mt-1"></i>
-                            <p className="font-semibold inline">Status Venue</p>
-                        </div>
-                        <div className="flex gap-4 items-center pl-8">
-                            <ToggleButton isActive={isActive} onClick={() => setIsActive(!isActive)} /> <p className={isActive ? 'text-green-600' : 'text-red-600'}>{isActive ? 'Aktif' : 'Tidak Aktif'}</p>
-                        </div>
-                    </div>
-
-                    <div className="p-2 w-full flex justify-end"> {/* this section will watch for changes, if changes occured, serve a save option */}
-                        <button type="button" onClick={() => {if(changeOccured) handleSubmit();}}  disabled={name?.length > 0 && address?.length > 0 && phone.length > 0 && email.length > 0 ? false : true && changeOccured} className={changeOccured? "px-3 bg-green-600 text-white text-[1.2em] rounded-lg font-extrabold hover:bg-green-700 cursor-pointer transition-color duration-100" : "px-3 bg-gray-600 text-white text-[1.2em] rounded-lg font-extrabold cursor-no-drop transition-color duration-100"}>{isLoading? 'Loading...' : 'Save'}</button>
+                    {/* Action Buttons */}
+                    <div className="flex justify-end gap-4 pt-6">
+                        <button
+                            type="button"
+                            onClick={handleSubmit}
+                            disabled={!changeOccured || isLoading}
+                            className="px-4 py-2 text-sm text-white bg-green-600 rounded-lg font-extrabold transition-colors disabled:cursor-not-allowed disabled:bg-gray-500 hover:bg-green-700"
+                        >
+                            {isLoading ? 'Menyimpan...' : 'Simpan'}
+                        </button>
                     </div>
                 </div>
-            </div>
 
-        </div>
+            </div>
         </>
     );
 };

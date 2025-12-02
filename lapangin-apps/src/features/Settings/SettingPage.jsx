@@ -18,15 +18,8 @@ export default function SettingPage() {
     // state
     const [selectedSetting, setSelectedSetting] = useState('vanue');
 
-    // ui handler
-
-    function handleSetActiveSetting(e) {
-        e.target.classList.add('active');
-    }
-
     const baseTabClass = "border-1 border-gray-600 cursor-pointer hover:bg-green-700 hover:border-transparent transition-colors duration-75 ease-in px-3 py-1 rounded-xl";
     const activeTabClass = "bg-green-700 border-transparent";
-
 
     return (<>
         <div className="p-5">
@@ -36,7 +29,7 @@ export default function SettingPage() {
 
         <div> {/* navbar section */}
             <ol className="flex flex-wrap justify-evenly items-center">
-                <li onClick={() => {setSelectedSetting('vanue');}} className={`${baseTabClass} ${selectedSetting === 'vanue' ? activeTabClass : ''}`}>Vanue</li>
+                <li onClick={() => setSelectedSetting('vanue')} className={`${baseTabClass} ${selectedSetting === 'vanue' ? activeTabClass : ''}`}>CourtSpace</li>
                 <li onClick={() => setSelectedSetting('payment')} className={`${baseTabClass} ${selectedSetting === 'payment' ? activeTabClass : ''}`}>Pembayaran</li>
             </ol>
         </div>
