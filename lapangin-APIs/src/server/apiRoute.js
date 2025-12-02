@@ -8,6 +8,8 @@ import UserVenuesController from '../modules/venues/userVenuesControllers.js';
 import VanueController from '../modules/venues/venuesControllers.js';
 import SlotAvailability from '../modules/courts/slotAvailability.js';
 import TeamController from '../modules/team/teamControllers.js';
+import AdminPayment from '../modules/payment/adminPaymentControllers.js';
+
 
 // microsites
 import CourtMicrositeController from '../modules/microsites/courtMicrositeControllers.js';
@@ -18,14 +20,16 @@ import AvaillabilityRules from '../modules/availability/availabilityRulesControl
 
 const route = express.Router();
 
-// set entry point down here
+// admin dashboard
 route.use('/venue', VanueController);
 route.use('/user_venues', UserVenuesController);
 route.use('/court', CourtController);
 route.use('/availabilityRules', AvailabilityController);
 route.use('/availabilityException', AvailabilityExceptionControllers);
-route.use('/courtAvailability', SlotAvailability)
+route.use('/courtAvailability', SlotAvailability);
 route.use('/team', TeamController);
+// admin payment
+route.use('/admin_payment', AdminPayment);
 
 // microsites (all request to these path will be available publicly)
 route.use('/courtMicrosite', CourtMicrositeController);
