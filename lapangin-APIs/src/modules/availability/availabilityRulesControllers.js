@@ -194,7 +194,7 @@ route.get('/get_court_schedule_for_selected_date/:venueId/:courtId/:date', async
             console.error('error from courtMicrosite', dayAvailabilityError)
             return res.sendStatus(400)
         }
-    
+    // test some
     // get slot duration
     const { data: slotDuration, error: slotDurationError } = await sbAdmin
         .from('courts')
