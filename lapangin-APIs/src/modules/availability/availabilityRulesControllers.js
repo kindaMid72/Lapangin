@@ -1,4 +1,4 @@
-import express from 'express';
+import express from 'express'; 
 
 import { Temporal } from '@js-temporal/polyfill';
 // utils
@@ -52,7 +52,7 @@ route.get('/get_selected_date_exception/:courtId/:date', async (req, res) => {
     }
 })
 
-route.get('/get_existing_schedules/:venueId/:courtId/:date', async (req, res) => {
+route.get('/get_existing_schedules/:venueId/:courtId/:date', async (req, res) => { // TODO:FIXME: jangan pakai ini
     try{
         /**
          * body: venueId (not sure), courtId, date (selected date)
@@ -89,9 +89,9 @@ route.get('/get_existing_schedules/:venueId/:courtId/:date', async (req, res) =>
                             .toString().split('[')[0];
 
         // query database base on startTime & endTime
-        const { data: schedules, error: scheduleError } = await sbAdmin 
+        let { data: schedules, error: scheduleError } = await sbAdmin 
             .from('slot_instances')
-            .select('id, slot_date, start_time, end_time, status, blocked_reason')
+            .select('id, slot_date, start_time, end_time, status, blocked_reason, expires_at')
             .eq('court_id', courtId)
             .gte('start_time', startTime)
             .lt('end_time', endTime)
@@ -99,8 +99,17 @@ route.get('/get_existing_schedules/:venueId/:courtId/:date', async (req, res) =>
                 console.error('error from slot_instances: ', scheduleError);
                 return res.sendStatus(500);
             }
+            schedules = schedules.filter(slot => {
+                if(slot.status === 'held'){
+                    const now = Temporal.Now.instant();
+                    const current = Temporal.Instant.from(slot.expires_at);
+                    if(!current) return true;
+                    // check if expires at already passed
+                    return Temporal.Instant.compare(now, current) < 0;
+                }
+                return true;
+            })
 
-        // TODO: configure this later TODO:
 
         return res.status(200).json({data: schedules});
 
@@ -139,14 +148,24 @@ route.get('/get_court_schedule_for_selected_date/:venueId/:courtId/:date', async
     // get court schedules
     let {data: courtSchedules, error: courtSchedulesError} = await sbAdmin
         .from('slot_instances')
-        .select('id, start_time, end_time, status')
+        .select('id, start_time, end_time, status, expires_at')
         .eq('court_id', courtId)
         .eq('slot_date', date);
         if(courtSchedulesError){
             console.error('error from courtMicrosite', courtSchedulesError)
             return res.sendStatus(400)
         }
-    
+        courtSchedules = courtSchedules.filter(slot => {
+            if(slot.status === 'held'){
+                const now = Temporal.Now.instant();
+                const current = Temporal.Instant.from(slot.expires_at);
+                if(!current) return true;
+                // check if expires at already passed
+                return Temporal.Instant.compare(now, current) < 0;
+            }
+            return true;
+        })
+
         // set timezone to courtSchedules
         courtSchedules.forEach( schedule => {
             schedule.start_time = Temporal.Instant.from(schedule.start_time).toZonedDateTimeISO(timezone).toString().split('[')[0];

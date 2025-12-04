@@ -11,8 +11,9 @@ import checkAdminAccess from '../../middlewares/auth/checkAdminAccess.js';
 import checkUserAccess from '../../middlewares/auth/checkUserAccess.js';
 
 // utils
-import isTimeStamptz from '../../utils/checker/isTimeStamptz.js';
+import isTimeStamptz from '../../utils/checker/isTimestamptz.js';
 import getDayIndex from '../../utils/getDayIndex.js'; // start on monday
+import checkUserTokenAndReturnId from '../../libs/supabase/getUserId.js';
 
 // set entry point
 route.post('/get_court_availability_for_given_date', async (req, res) => {
@@ -38,7 +39,7 @@ route.post('/get_court_availability_for_given_date', async (req, res) => {
         // get non-available schedule, return utc timestamptz, convert it to venue time zone
         let { data: nonAvailableSlots, error: getNonAvailableSlotsError } = await sbAdmin
             .from('slot_instances')
-            .select('start_time, end_time, status, id')
+            .select('start_time, end_time, status, id, expires_at')
             .eq('court_id', courtId)
             .neq('status', 'free')
             .eq('slot_date', date); 
@@ -61,6 +62,18 @@ route.post('/get_court_availability_for_given_date', async (req, res) => {
                 slot.end_time = Temporal.Instant.from(slot.end_time)
                                     .toZonedDateTimeISO(courtSpaceTimeZone[0].timezone)
                                     .toString().split('[')[0];
+            })
+
+            // TODO: filter held if expires at already passed
+            nonAvailableSlots = nonAvailableSlots.filter(slot => {
+                if(slot.status === 'held'){
+                    const now = Temporal.Now.instant();
+                    const current = Temporal.Instant.from(slot.expires_at);
+                    if(!current) return true;
+                    // check if expires at already passed
+                    return Temporal.Instant.compare(now, current) < 0;
+                }
+                return true;
             })
 
         // get open close time
@@ -98,6 +111,9 @@ route.post('/insert_new_court_schedule', async (req, res) => {
         const endTime = req.body?.endTime; // timestamptz, zone set to venue timezone
         const slotDate = req.body?.slotDate;
 
+        // TODO: config here, add expires_at
+        const expires_at = status === 'held'? Temporal.Now.instant().add({minutes: 10}) : null; // simpan di expires at jika status === held
+
         const userHasAccess = await checkUserAccess(req.headers.authorization, venueId); // this is staff base access
         if (!userHasAccess) return res.status(401).json({ message: 'access denied, token expired or user didnt have access' });
 
@@ -118,12 +134,27 @@ route.post('/insert_new_court_schedule', async (req, res) => {
         // console.log(req.body);
         // request goes here
 
-        // TODO: check if any overlap
-        const {data: existingSchedules, error: getExistingSchedulesError} = await sbAdmin
+        //  check if any overlap
+        let {data: existingSchedules, error: getExistingSchedulesError} = await sbAdmin
             .from('slot_instances')
-            .select('start_time, end_time')
+            .select('start_time, end_time, status, expires_at')
             .eq('court_id', courtId)
             .eq('slot_date', slotDate);
+            // filter existing schedule held that had passed
+            if(getExistingSchedulesError){
+                console.error('error from slotAvailability: ', getExistingSchedulesError);
+                return res.status(400).json({message: 'something went wrong'});
+            }
+            existingSchedules = existingSchedules.filter(schedule => {
+                if(schedule.status === 'held'){
+                    const now = Temporal.Now.instant();
+                    const current = Temporal.Instant.from(schedule.expires_at);
+                    if(!current) return true;
+                    // check if expires at already passed
+                    return Temporal.Instant.compare(now, current) < 0;
+                }
+                return true;
+            })
 
         const isOverlap = existingSchedules.some(existingSchedule => {
             const startInstant = Temporal.Instant.from(existingSchedule.start_time).epochMilliseconds
@@ -150,7 +181,8 @@ route.post('/insert_new_court_schedule', async (req, res) => {
                     start_time: startTime.split('[')[0], // make sure date string that been passed is in timestamptz format
                     end_time: endTime.split('[')[0],
                     status: status,
-                    slot_date: slotDate // venue timezone date
+                    slot_date: slotDate, // venue timezone date
+                    expires_at: expires_at
                 }
             ]).select();
             // console.log('data been insert in slot_instances: ', data);

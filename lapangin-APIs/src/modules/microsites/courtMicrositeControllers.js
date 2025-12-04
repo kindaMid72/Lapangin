@@ -61,7 +61,6 @@ route.get('/get_court_info/:venueId', async (req, res) => {
         console.error('error from courtMicrosite: ', err)
         return res.sendStatus(500); // internal server error
     }
-    return 
 })
 
 

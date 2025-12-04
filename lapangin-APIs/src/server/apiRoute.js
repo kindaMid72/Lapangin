@@ -26,13 +26,13 @@ route.use('/user_venues', UserVenuesController);
 route.use('/court', CourtController);
 route.use('/availabilityRules', AvailabilityController);
 route.use('/availabilityException', AvailabilityExceptionControllers);
-route.use('/courtAvailability', SlotAvailability);
+route.use('/courtAvailability', SlotAvailability); // admin court
 route.use('/team', TeamController);
 // admin payment
 route.use('/admin_payment', AdminPayment);
 
 // microsites (all request to these path will be available publicly)
-route.use('/courtMicrosite', CourtMicrositeController);
+route.use('/courtMicrosite', CourtMicrositeController); // microsite
 route.use('/publicAvailability', AvaillabilityRules)
 
 

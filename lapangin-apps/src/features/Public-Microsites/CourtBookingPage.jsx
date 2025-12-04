@@ -174,6 +174,10 @@ export default function BookingPage() {
     function handleRefreshButton() {
         window.location.reload();
     }
+    async function handleBookingButton(){
+        // TODO: create slots hold for selected slots
+        
+    }
 
     // ui handler
     const mouseIn = (event) => {

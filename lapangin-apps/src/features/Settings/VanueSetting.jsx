@@ -117,7 +117,7 @@ export default function VanueSetting() {
                     {/* Form */}
                     <div className="space-y-4 mt-6 text-gray-700 dark:text-gray-300">
                         <div>
-                            <label htmlFor="venue-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Venue</label>
+                            <label htmlFor="venue-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama CourtSpace</label>
                             <div className="flex items-center gap-3">
                                 <i className="fa-solid fa-store text-gray-400"></i>
                                 <input id="venue-name" onChange={(e) => setName(e.target.value)} value={name} placeholder="Nama Usaha Anda" className="w-full p-2 bg-transparent dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" />
@@ -163,7 +163,7 @@ export default function VanueSetting() {
                         </div>
 
                         <div>
-                            <label htmlFor="venue-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Deskripsi Venue</label>
+                            <label htmlFor="venue-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Deskripsi CourtSpace</label>
                             <div className="flex items-start gap-3">
                                 <i className="fa-solid fa-circle-info text-gray-400 mt-2"></i>
                                 <textarea id="venue-description" onChange={(e) => setDescription(e.target.value)} value={description} rows="4" className="w-full p-2 bg-transparent dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Jelaskan tentang venue Anda..."></textarea>
@@ -172,7 +172,7 @@ export default function VanueSetting() {
 
                         <div className="flex justify-between items-center pt-2">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status Venue</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status CourtSpace</label>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">Nonaktifkan jika venue sedang tidak beroperasi.</p>
                             </div>
                             <ToggleButton isActive={isActive} onClick={() => setIsActive(!isActive)} />
