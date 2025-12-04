@@ -1,4 +1,5 @@
 // return date exception, taken slotschedules,
+// gw mau experiment
 import api from '@/utils/axiosClient/axiosPublicRealtimeInterceptor.js';
 
 async function getSelectedDateException(courtId, date) {
