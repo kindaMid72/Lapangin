@@ -5,8 +5,11 @@
  * FIXME: error in current time comparison, issue occured after changes applied
  */
 import { Temporal } from '@js-temporal/polyfill';
-
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
+import generateRandomUUID from '@/utils/generator/UUIDgenerator';
+
 
 // compontess
 
@@ -16,7 +19,7 @@ import numberToRupiah from '@/utils/formatChanger/numberToRupiah.js';
 
 // api
 import { getSelectedDateException, getSlotsForSelectedDate } from '@/Apis/booking/courtMicrositeAvailability';
-import { useParams, useRouter } from 'next/navigation';
+import { initializeBooking } from '@/Apis/microsite-booking/microsite-booking-api.js';
 
 export default function BookingPage() {
     const params = useParams();
@@ -29,6 +32,7 @@ export default function BookingPage() {
     // data state    
     const [selectedDate, setSelectedDate] = useState((new Date()).toISOString().split('T')[0]);
     const [slots, setSlots] = useState([]); // array of object (object -> {start_time, end_time, status)
+    const [selectedSlot, setSelectedSlot] = useState([]); // containt timestapmtz of each selected slot (startTime, endTime) <- this is havent set to dateteme, only time
 
 
     // ui state
@@ -36,8 +40,9 @@ export default function BookingPage() {
     const [slotStatus, setSlotStatus] = useState('');
     const [slotPrice, setSlotPrice] = useState(1000000000);
 
-    const [selectedSlot, setSelectedSlot] = useState([]); // containt timestapmtz of each selected slot (startTime, endTime) <- this is havent set to dateteme, only time
     const [currentTime, setCurrentTime] = useState(() => Temporal.Now.instant());
+
+    const [loadingBooking, setLoadingBooking] = useState(false);
 
 
     /**
@@ -146,7 +151,6 @@ export default function BookingPage() {
                         selected: false // for uis, true if element selected for bookings
                     })
                 }
-                console.log(slotTemp); // ga sampai sini
                 setSlots(slotTemp);
 
                 // set slot status based on nonAvailable slots
@@ -165,8 +169,42 @@ export default function BookingPage() {
 
 
     // handler
-    function handlePaymentPageButton() {
-        router.push(`/booking_now/${params.venue_id}/${params.court_id}/payment`)
+    async function handlePaymentPageButton() {
+        // TODO: perform booking initialization
+        // args: selected_schedule, selected date, court_id
+        // courtId, selectedDate, venueId, selectedSchedule, idenpotenKey
+        setLoadingBooking(true);
+
+        const courtId = params.court_id;
+        const venueId = params.venue_id;
+        const selectedSchedule = selectedSlot;
+        const idenpotenKey = generateRandomUUID();
+
+        const bookingId = await initializeBooking({
+            selectedSchedule: selectedSchedule,
+            selectedDate: selectedDate,
+            courtId: courtId,
+            venueId: venueId,
+            idenpotenKey: idenpotenKey
+        })
+        .then(res => {
+            console.log(res);
+            return res.data;
+        })
+        .then(res => {
+            console.log(res);
+            return res.bookingId;
+        })
+        .catch(err => {
+            setError(err);
+        })
+        .finally(() => {
+            setLoadingBooking(false);
+        });
+        
+        // redirect to payment page, with bookingId as new params for booking_payment
+
+        router.push(`/booking_now/${params.venue_id}/${params.court_id}/${bookingId}`)
     }
     function handleBackButton() {
         router.push(`/booking_now/${params.venue_id}`)
@@ -311,8 +349,8 @@ export default function BookingPage() {
             </div>
             {selectedSlot.length > 0 &&
                 <div className='w-full flex justify-end items-center px-10'>
-                    <button onClick={() => { handlePaymentPageButton() }} className='flex justify-end gap-2 !text-white font-bold  items-center p-2 px-3 w-fit rounded-xl bg-green-700 hover:bg-green-600 transition-color duration-150 cursor-pointer' type='button'> {/** payment button */}
-                        Lanjut Pembayaran <i className='fa-solid fa-arrow-right !text-white '></i>
+                    <button onClick={() => { handlePaymentPageButton() }} disabled={selectedSlot.length === 0 || loadingBooking} className={`flex justify-end gap-2 !text-white font-bold  items-center p-2 px-3 w-fit ${loadingBooking? 'bg-gray-500 cursor-not-allowed' : 'bg-green-700 hover:bg-green-600'} rounded-xl  transition-color duration-150 cursor-pointer`} type='button'> {/** payment button */}
+                        {loadingBooking? "Loading..." : "Lanjut Pembayaran"}<i className='fa-solid fa-arrow-right !text-white '></i>
                     </button>
                 </div>
             }

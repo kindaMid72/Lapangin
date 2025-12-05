@@ -61,6 +61,7 @@ CREATE TABLE public.bookings (
   notes text,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  expires_at timestamp with time zone,
   CONSTRAINT bookings_pkey PRIMARY KEY (id),
   CONSTRAINT bookings_venue_id_fkey FOREIGN KEY (venue_id) REFERENCES public.venues(id),
   CONSTRAINT bookings_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
@@ -115,8 +116,12 @@ CREATE TABLE public.payments (
   raw_response jsonb,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  payment_recipe_url text,
+  payment_recipe_metadata json,
+  venue_payment_id bigint,
   CONSTRAINT payments_pkey PRIMARY KEY (id),
-  CONSTRAINT payments_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(id)
+  CONSTRAINT payments_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(id),
+  CONSTRAINT payments_venue_payment_id_fkey FOREIGN KEY (venue_payment_id) REFERENCES public.venue_payments(id)
 );
 CREATE TABLE public.slot_hold_items (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -143,7 +148,7 @@ CREATE TABLE public.slot_holds (
 );
 CREATE TABLE public.slot_instances (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  slot_template_id uuid NOT NULL,
+  slot_template_id uuid,
   court_id bigint NOT NULL,
   slot_date date NOT NULL,
   slot_number integer,
@@ -153,6 +158,7 @@ CREATE TABLE public.slot_instances (
   blocked_reason text,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  expires_at timestamp with time zone,
   CONSTRAINT slot_instances_pkey PRIMARY KEY (id),
   CONSTRAINT slot_instances_slot_template_id_fkey FOREIGN KEY (slot_template_id) REFERENCES public.slot_templates(id),
   CONSTRAINT slot_instances_court_id_fkey FOREIGN KEY (court_id) REFERENCES public.courts(id)
@@ -175,6 +181,9 @@ CREATE TABLE public.user_venues (
   invited_by uuid DEFAULT auth.uid(),
   invite_status character varying DEFAULT '''pending'''::character varying,
   is_active boolean NOT NULL DEFAULT true,
+  name text,
+  phone text,
+  email text,
   CONSTRAINT user_venues_pkey PRIMARY KEY (id),
   CONSTRAINT user_vanues_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
   CONSTRAINT user_vanues_invited_by_fkey FOREIGN KEY (invited_by) REFERENCES auth.users(id),
@@ -182,17 +191,15 @@ CREATE TABLE public.user_venues (
 );
 CREATE TABLE public.venue_invites (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
-  vanue_id bigint NOT NULL,
+  venue_id bigint NOT NULL,
   invited_email text NOT NULL,
   role text DEFAULT 'staff'::text,
   invited_token text,
   status text,
   expires_at timestamp with time zone,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
-  user_id uuid,
   CONSTRAINT venue_invites_pkey PRIMARY KEY (id),
-  CONSTRAINT vanue_invites_vanue_id_fkey FOREIGN KEY (vanue_id) REFERENCES public.venues(id),
-  CONSTRAINT venue_invites_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+  CONSTRAINT vanue_invites_vanue_id_fkey FOREIGN KEY (venue_id) REFERENCES public.venues(id)
 );
 CREATE TABLE public.venue_payments (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
@@ -204,6 +211,10 @@ CREATE TABLE public.venue_payments (
   is_active boolean,
   settlement_rules text,
   venue_id bigint NOT NULL,
+  updated_at timestamp with time zone DEFAULT now(),
+  image_url text,
+  image_metadata json,
+  account_number text,
   CONSTRAINT venue_payments_pkey PRIMARY KEY (id),
   CONSTRAINT venue_payments_venue_id_fkey FOREIGN KEY (venue_id) REFERENCES public.venues(id)
 );
@@ -216,7 +227,7 @@ CREATE TABLE public.venues (
   description text DEFAULT ''::text,
   metadata jsonb,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
-  timezone text DEFAULT 'Asia/Indonesia/'::text,
+  timezone text DEFAULT '''''''Asia/jakarta''''::text''::text'::text,
   is_active boolean,
   email text,
   CONSTRAINT venues_pkey PRIMARY KEY (id)

@@ -13,7 +13,8 @@ import AdminPayment from '../modules/payment/adminPaymentControllers.js';
 
 // microsites
 import CourtMicrositeController from '../modules/microsites/courtMicrositeControllers.js';
-import AvaillabilityRules from '../modules/availability/availabilityRulesControllers.js'
+import AvaillabilityRules from '../modules/availability/availabilityRulesControllers.js';
+import MicrositeBooking from '../modules/microsite-booking/microsite_booking.js'
 
 
 
@@ -34,6 +35,7 @@ route.use('/admin_payment', AdminPayment);
 // microsites (all request to these path will be available publicly)
 route.use('/courtMicrosite', CourtMicrositeController); // microsite
 route.use('/publicAvailability', AvaillabilityRules)
+route.use('/microsite_booking', MicrositeBooking);
 
 
 // TODO: venueCourt route entry point

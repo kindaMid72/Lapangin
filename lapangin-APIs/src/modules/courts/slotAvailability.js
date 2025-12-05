@@ -163,9 +163,9 @@ route.post('/insert_new_court_schedule', async (req, res) => {
             const newEndInstant = Temporal.Instant.from(endTime).epochMilliseconds
 
             return (
-                (startInstant <= newStartInstant && newStartInstant <= endInstant) ||
-                (startInstant <= newEndInstant && newEndInstant <= endInstant) ||
-                (newStartInstant <= startInstant && newEndInstant >= endInstant)
+                (newStartInstant < startInstant && newEndInstant > startInstant) || // based on startTime
+                (newStartInstant < endTime && newEndInstant >= endInstant) || // based on endTime
+                (newStartInstant >= startInstant && newEndInstant <= endInstant) // caught in between startTime & endTime
             );
         });
         if(isOverlap) return res.sendStatus(400);
