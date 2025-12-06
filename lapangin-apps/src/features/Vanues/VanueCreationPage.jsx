@@ -95,7 +95,7 @@ export default function VanueCreate() {
                 </div>
 
                 {/* Right Section / Form */}
-                <div className="w-full md:w-2/3 p-6 md:p-10 flex flex-col">
+                <div className="w-full md:w-2/3 px-6 md:px-10 pt-6 md:pt-10 flex flex-col justify-center ">
                     <form onSubmit={handleCreateVenue} className="space-y-4 flex-grow overflow-y-auto scrollbar-hide pr-2">
                         <div>
                             <label htmlFor="venueName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Venue</label>

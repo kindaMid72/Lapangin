@@ -1,10 +1,14 @@
 "use client";
 // libs
 import api from "@/utils/axiosClient/axiosInterceptor.js";
+import supabaseClient from "@/utils/supabase/client.js";
 
+
+// components
+import ConfirmationMessage from "../components/ConfirmationMessage.jsx";
 
 /**
- * TODO: create a button to go to venues invites page
+ * TODO: create a logout button and confirm for logout
  */
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
@@ -30,6 +34,7 @@ export default function Venues() {
     const [venues, setVenues] = useState([]); // store active venues for that user
     const [isLoading, setIsLoading] = useState(true); // Tambahkan state loading
     const [error, setError] = useState(null);
+    const [showConfirmation, setShowConfirmation] = useState(false);
 
     const [showInvite, setShowInvite] = useState(false);
     const [thereIsAnInvite, setThereIsAnInvite] = useState(false);
@@ -101,12 +106,31 @@ export default function Venues() {
 
         router.replace(`/${user_id}/${venueId}/dashboard`);
     };
+    async function handleLogout() {
+        const supabase = supabaseClient();
+        let { error: logoutError } = await supabase.auth.signOut();
+        if(logoutError) {
+            setError('logout failed');
+        }else{
+            router.push('/login');
+        }
+    }
 
     if (isLoading) return <div className="flex items-center justify-center min-h-screen opacity-30">Loading venues...</div>;
     if (error) return <div className="flex items-center justify-center min-h-screen text-red-500">Error: {error}</div>;
 
     return (
         <>
+            {showConfirmation && <ConfirmationMessage
+                title={'Yakin mau logout?'}
+                message={'kalau kamu logout, ya harus login lagi kalau mau masuk, no problem sih'}
+                onConfirm={handleLogout}
+                onCancel={() => setShowConfirmation(false)}
+                delayConfirm={true}
+                confirmColor={'red'}
+                cancelColor={'gray'}
+                delaySecond={1}
+            />}
             {showInvite && <VenueInvitePage onClose={() => setShowInvite(false)} />}
             {/* invite section */}
             <div onClick={() => { setShowInvite(true); }} className="cursor-pointer size-10 z-50 fixed top-3 right-3 rounded-full group flex justify-center items-center dark:bg-gray-700 bg-gray-400 ">
@@ -114,6 +138,10 @@ export default function Venues() {
                     {thereIsAnInvite && <div className="size-2 absolute bg-red-400 z-39 rounded-full -top-[10px] -right-[26px]"> </div>}
                 </div>
                 <i className={`fa-solid fa-envelope text-xl text-gray-400 group-hover:text-green-400 transition-colors duration-100 ease-in `}></i>
+            </div>
+            <div onClick={() => { setShowConfirmation(true); }} className="cursor-pointer group size-10 z-50 fixed top-15 right-3 rounded-full group flex justify-center items-center dark:bg-gray-700 bg-gray-400 ">
+                <i className={`fa-solid fa-arrow-right-from-bracket text-xl text-gray-400 group-hover:text-green-400 transition-colors duration-100 ease-in `}></i>
+                <span className="absolute group-hover:block hidden text-xs top-10 text-gray-400/90">Logout</span>
             </div>
             <div className="min-h-screen bg-gray-100 dark:bg-gray-900 font-mono">
                 <div className="container mx-auto flex flex-col md:flex-row md:h-screen">
@@ -142,7 +170,7 @@ export default function Venues() {
                             ))}
                         </div>
                         <div className="mt-8 text-center">
-                            <button onClick={() => router.push(`/${params.user_id}/new_vanue`)} className="w-full md:w-auto bg-transparent border-2 cursor-pointer border-green-600 text-green-600 dark:text-green-400 dark:border-green-400 px-8 py-3 rounded-lg font-bold hover:bg-green-600 hover:text-white dark:hover:bg-green-400 dark:hover:text-gray-900 transition-all duration-150">
+                            <button onClick={() => router.push(`/${params.user_id}/new_vanue`)} className="w-full md:w-auto bg-transparent border-2 cursor-pointer border-green-600 text-green-600 dark:text-green-400 dark:border-green-400 px-8 py-3 rounded-lg font-bold hover:bg-green-600 hover:text-white dark:hover:bg-green-600 dark:hover:text-white transition-all duration-150">
                                 + Buat CourtSpace Baru
                             </button>
                         </div>

@@ -17,3 +17,5 @@ export async function getUserSession() {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     ).auth.getSession();
 }
+
+export default createClient;
