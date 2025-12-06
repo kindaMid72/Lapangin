@@ -121,7 +121,7 @@ export default function NewPayment({ onCancel, onSave }) {
                             <option className="dark:!text-white !text-black dark:bg-gray-700" value="Virtual Account">Virtual Account</option>
                             <option className="dark:!text-white !text-black dark:bg-gray-700" value="E-Wallet">E-Wallet</option>
                             <option className="dark:!text-white !text-black dark:bg-gray-700" value="Credit Card">Kartu Kredit</option>
-                            <option className="dark:!text-white !text-black dark:bg-gray-700" value="Rekening">Rekening</option>
+                            <option className="dark:!text-white !text-black dark:bg-gray-700" value="Transfer Bank">Rekening</option>
                             <option className="dark:!text-white !text-black dark:bg-gray-700" value="Qris">Qris</option>
                         </select>
                     </div>

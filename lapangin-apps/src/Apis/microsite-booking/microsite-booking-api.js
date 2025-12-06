@@ -13,10 +13,29 @@ async function initializeBooking({courtId, selectedDate, venueId, selectedSchedu
     })
 
 }
+async function getBookingDetail(venueId, bookingId){
+    return await api.get(`/microsite_booking/get_booking/${venueId}/${bookingId}`);
+}
+async function initializePayment(fd) {
+    return await api.post(`/microsite_booking/initialize_payment`, fd, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+async function checkBookingStatus(bookingId){
+    return await api.get(`/microsite_booking/check_booking_status/${bookingId}`);
+}
 
 export {
-    initializeBooking
+    initializeBooking,
+    getBookingDetail,
+    initializePayment,
+    checkBookingStatus
 }
 export default {
-    initializeBooking
+    initializeBooking,
+    getBookingDetail,
+    initializePayment,
+    checkBookingStatus
 }

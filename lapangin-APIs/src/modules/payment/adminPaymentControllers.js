@@ -52,7 +52,7 @@ route.post('/create_new_payment', upload.single('file'), async (req, res) => {
         }
         const ext = (imageFile.originalname.split('.').pop() || 'bin').replace(/\W/g,'');
         const filename = `${Date.now()}-${Math.floor(Math.random()*1e6)}.${ext}`;
-        const path = `qris/${venueId}/${filename}`; // akan digunakan untuk query nanti
+        const path = `payment/${venueId}/${filename}`; // akan digunakan untuk query nanti
 
 
         // check size before uploading
