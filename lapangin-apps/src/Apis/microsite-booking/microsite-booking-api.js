@@ -23,14 +23,19 @@ async function initializePayment(fd) {
         }
     })
 }
+async function checkBookingStatus(bookingId){
+    return await api.get(`/microsite_booking/check_booking_status/${bookingId}`);
+}
 
 export {
     initializeBooking,
     getBookingDetail,
-    initializePayment
+    initializePayment,
+    checkBookingStatus
 }
 export default {
     initializeBooking,
     getBookingDetail,
-    initializePayment
+    initializePayment,
+    checkBookingStatus
 }

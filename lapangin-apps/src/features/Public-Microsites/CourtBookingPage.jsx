@@ -19,7 +19,7 @@ import numberToRupiah from '@/utils/formatChanger/numberToRupiah.js';
 
 // api
 import { getSelectedDateException, getSlotsForSelectedDate } from '@/Apis/booking/courtMicrositeAvailability';
-import { initializeBooking } from '@/Apis/microsite-booking/microsite-booking-api.js';
+import { initializeBooking, checkBookingStatus } from '@/Apis/microsite-booking/microsite-booking-api.js';
 
 export default function BookingPage() {
     const params = useParams();
@@ -33,6 +33,8 @@ export default function BookingPage() {
     const [selectedDate, setSelectedDate] = useState((new Date()).toISOString().split('T')[0]);
     const [slots, setSlots] = useState([]); // array of object (object -> {start_time, end_time, status)
     const [selectedSlot, setSelectedSlot] = useState([]); // containt timestapmtz of each selected slot (startTime, endTime) <- this is havent set to dateteme, only time
+
+    const [existingBookingId, setExistingBookingId] = useState(null);
 
 
     // ui state
@@ -61,6 +63,30 @@ export default function BookingPage() {
         // Clean up the interval when the component unmounts to prevent memory leaks
         return () => clearInterval(intervalId);
     }, []); // Empty dependency array ensures this effect runs only once on mount
+
+    useEffect(() => {
+        const temp = localStorage.getItem('booking_id');
+        if (temp) {
+            const result = checkBookingStatus(temp)
+                .then(res => {
+                    return res.data;
+                })
+                .then(res =>{
+                    return res.status;
+                })
+                .catch(err => {
+                    setError('sesi booking tidak lagi aktif');
+                    return null;
+                })
+                
+            if(!result){
+                setExistingBookingId(null);
+                localStorage.removeItem('booking_id');
+                return;
+            }
+            setExistingBookingId(temp); // if there any active booking session, show continue payment button
+        }   
+    }, [])
 
     useEffect(() => {
         let dateAvailable = true;
@@ -145,9 +171,10 @@ export default function BookingPage() {
                         endTime: tempSlotEnd.toInstant(),
                         startTimeString: startSlot.toString().slice(0, 5),
                         endTimeString: slotEnd.toString().slice(0, 5),
-                        isBooked: (status === 'booked') || (Temporal.Instant.compare(tempSlotEnd.toInstant(), currentTime) < 0), // set the state to be blocked if the time have been passed
+                        isBooked: (status === 'booked') ,
                         isBlocked: status === 'blocked',
                         isHold: status === 'held',
+                        isPassed: false || (Temporal.Instant.compare(tempSlotEnd.toInstant(), currentTime) < 0), // set the state to be blocked if the time have been passed
                         selected: false // for uis, true if element selected for bookings
                     })
                 }
@@ -203,7 +230,8 @@ export default function BookingPage() {
         });
         
         // redirect to payment page, with bookingId as new params for booking_payment
-
+        setExistingBookingId(bookingId);
+        localStorage.setItem('booking_id', bookingId);
         router.push(`/booking_now/${params.venue_id}/${params.court_id}/${bookingId}`)
     }
     function handleBackButton() {
@@ -213,8 +241,17 @@ export default function BookingPage() {
         window.location.reload();
     }
     async function handleBookingButton(){
-        // TODO: create slots hold for selected slots
-        
+        setLoadingBooking(true);
+        if(!existingBookingId){
+            setError('booking tidak ditemukan');
+            setLoadingBooking(false);
+            setExistingBookingId(null);
+            return;
+        }
+
+        // navigate to payment page
+        router.push(`/booking_now/${params.venue_id}/${params.court_id}/${existingBookingId}`)
+        setLoadingBooking(false);
     }
 
     // ui handler
@@ -265,13 +302,15 @@ export default function BookingPage() {
                             :
                             <>
                                 {/* set slots di sini */}
-                                <div className='relative grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2'>
+                                <div className='relative gap-2 w-full flex flex-wrap'>
                                     <div className='fixed w-fit h-fit flex justify-center items-center rounded-xl overflow-hidden px-2 ' style={{ left: mousePos.x, top: mousePos.y }}>
                                         <p className={`text-center content-center rounded-lg px-2  ${slotStatus !== 'available' ? 'bg-red-400/30 hover:bg-red-300' : 'bg-green-200/30 hover:bg-green-100 hover:shadow-[0px_0px_10px_rgba(0,0,0,0.5]'}`}
                                         >{slotStatus}</p>
                                     </div>
+
                                     {slots.length > 0 ? slots.map(slot => (
                                         <div
+                                            className='sm:w-fit w-full'
                                             onClick={() => {
                                                 // TODO: set selected slot for booking
                                                 const setSelect = !slot.selected;
@@ -285,7 +324,7 @@ export default function BookingPage() {
                                                     });
                                                 })
 
-                                                if (slot.isBlocked || slot.isHold || slot.isBooked) return;
+                                                if (slot.isBlocked || slot.isHold || slot.isBooked || slot.isPassed) return;
                                                 setSelectedSlot(prevSelectedSlots => {
                                                     // Find index of the slot based on its startTime (assuming startTime is unique)
                                                     const existingIndex = prevSelectedSlots.findIndex(
@@ -301,7 +340,7 @@ export default function BookingPage() {
                                                 })
                                             }}
                                             key={slot.startTimeString} onMouseEnter={() => {
-                                                const status = slot.isBooked || slot.isHold || slot.isBlocked ? 'not-available' : 'available';
+                                                const status = slot.isBlocked || slot.isHold || slot.isBooked || slot.isPassed ? 'not-available' : 'available';
                                                 setSlotStatus(status);
                                             }}>
                                             <div
@@ -313,10 +352,10 @@ export default function BookingPage() {
                                                 }}
                                                 key={slot.startTimeString}
                                                 className={`p-5 text-center rounded-lg cursor-pointer transition-all border-2 duration-200 ease-in-out ${slot.selected ? 'border-green-500 bg-green-100' : 'border-gray-400'} ${slot.selected ? 'border-green-500' : 'border-gray-300'}  hover:border-green-500 hover:shadow-[0px_0px_10px_rgba(0,0,0,0.5]
-                                                 ${slot.isBlocked || slot.isHold || slot.isBooked ? '!bg-gray-50 !border-gray-200 !hover:border-gray-400 !text-gray-500' : ''}`}
+                                                ${slot.isBlocked || slot.isHold || slot.isBooked || slot.isPassed ? '!bg-gray-50 !border-gray-200 !hover:border-gray-400 !text-gray-500' : ''}`}
                                             >
-                                                <p className={`${slot.isBlocked || slot.isHold || slot.isBooked ? '!text-gray-300' : '!text-gray-500'} font-extrabold `}>{slot.startTimeString} - {slot.endTimeString}</p>
-                                                {!(slot.isBlocked || slot.isHold || slot.isBooked) ? <p className='text-sm !text-gray-500'>{numberToRupiah(String(slotPrice)).split(',')[0]}</p> : <p className='!text-gray-300 text-sm font-bold'>Terlewati</p>}
+                                                <p className={`${slot.isBlocked || slot.isHold || slot.isBooked || slot.isPassed ? '!text-gray-300' : '!text-gray-500'} font-extrabold `}>{slot.startTimeString} - {slot.endTimeString}</p>
+                                                {!(slot.isBlocked || slot.isHold || slot.isBooked || slot.isPassed) ? <p className='text-sm !text-gray-500'>{numberToRupiah(String(slotPrice)).split(',')[0]}</p> : <p className='!text-gray-300 text-sm font-bold'>{slot.isBlocked || slot.isHold || slot.isBooked? 'Terisi' : 'Terlewat'}</p>}
                                             </div>
                                         </div>
                                     )) : <p>Loading...</p>}
@@ -347,13 +386,22 @@ export default function BookingPage() {
                     </div>
                 }
             </div>
-            {selectedSlot.length > 0 &&
-                <div className='w-full flex justify-end items-center px-10'>
-                    <button onClick={() => { handlePaymentPageButton() }} disabled={selectedSlot.length === 0 || loadingBooking} className={`flex justify-end gap-2 !text-white font-bold  items-center p-2 px-3 w-fit ${loadingBooking? 'bg-gray-500 cursor-not-allowed' : 'bg-green-700 hover:bg-green-600'} rounded-xl  transition-color duration-150 cursor-pointer`} type='button'> {/** payment button */}
-                        {loadingBooking? "Loading..." : "Lanjut Pembayaran"}<i className='fa-solid fa-arrow-right !text-white '></i>
-                    </button>
-                </div>
-            }
+            <div className='flex w-full justify-end items-center gap-0'>
+                {existingBookingId && 
+                    <div className=' flex justify-end items-center px-5'>
+                        <button type={'button'} onClick={() => { handleBookingButton() }} disabled={loadingBooking} className={`px-3 py-2 border-2 border-[#fbebbe] ${loadingBooking?"bg-[#faeed0] cursor-not-allowed" : 'bg-[#fff7dd] hover:bg-[#fceaba] hover:border-[#f7db8c] cursor-pointer'} rounded-lg transition-colors duration-100 ease-in-out`}>
+                            {loadingBooking? "Loading..." : <p className='flex items-center gap-2'>Lanjutkan Pembayaran Sebelumnya <i className='fa-solid fa-arrow-rotate-left'></i></p>}
+                        </button>
+                    </div>
+                }
+                {selectedSlot.length > 0 &&
+                    <div className=' flex justify-end items-center px-5'>
+                        <button onClick={() => { handlePaymentPageButton() }} disabled={selectedSlot.length === 0 || loadingBooking} className={`flex justify-end gap-2 !text-white font-bold  items-center p-2 px-3 w-fit ${loadingBooking? 'bg-gray-500 cursor-not-allowed' : 'bg-green-700 hover:bg-green-600'} rounded-xl  transition-color duration-150 cursor-pointer`} type='button'> {/** payment button */}
+                            {loadingBooking? "Loading..." : "Lanjut Pembayaran"}<i className='fa-solid fa-arrow-right !text-white '></i>
+                        </button>
+                    </div>
+                }
+            </div>
         </div>
     </>)
 }

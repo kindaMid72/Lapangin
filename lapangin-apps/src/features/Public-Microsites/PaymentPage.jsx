@@ -1,6 +1,6 @@
 'use client'
 import { Temporal } from "@js-temporal/polyfill";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 // api
@@ -14,6 +14,7 @@ import InputImage from '@/utils/inputTools/UploadImage.jsx';
 
 export default function PaymentPage() {
     const params = useParams();
+    const router = useRouter();
 
 
     // state
@@ -27,6 +28,7 @@ export default function PaymentPage() {
     const [notes, setNotes] = useState('');
     const [price, setPrice] = useState(999999);
     const [expireTime, setExpireTime] = useState(0);
+    const [bookingStatus, setBookingStatus] = useState('');
 
     // payment option
     const [payments, setPayments] = useState([]);
@@ -48,63 +50,76 @@ export default function PaymentPage() {
     const [errorUpload, setErrorUpload] = useState(null);
 
 
-    useEffect(() => {
-        // Definisikan fungsi fetch di dalam useEffect
-        async function handleFetchingData() {
-            // Tambahkan guard clause untuk memastikan params sudah ada
-            if (!params.booking_payment || !params.venue_id) {
+    async function handleFetchingData() {
+        // Tambahkan guard clause untuk memastikan params sudah ada
+        if (!params.booking_payment || !params.venue_id) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await getBookingDetail(params.venue_id, params.booking_payment)
+                .then(res => {
+                    if (res.status >= 400) {
+                        return null;
+                    }
+                    return res.data;
+                })
+            // bookingDetail: bookingDetail, // id, court_name, venue_id, guest_name, guest_phone, status, price_total, notes, expires_at
+            // paymentOption: paymentOption, // id, provider_id, name, type, currency, image_url, account_number
+            // selectedBookedSlots: selectedBookedSlots // start_time, end_time
+
+            if (!data) {
+                setError("Gagal memuat detail pesanan, mungkin saja sesi sudah tidak aktif. Jika anda merasa ini salah, hubungi penyedia jasa.");
                 return;
             }
 
-            try {
-                setLoading(true);
-                setError(null);
-                const data = await getBookingDetail(params.venue_id, params.booking_payment)
-                    .then(res => res.data)
-                    .catch(err => {
-                        setError("Gagal memuat detail pesanan, mungkin saja sesi sudah tidak aktif. Jika anda merasa ini salah, hubungi penyedia jasa.");
-                        return null;
-                    })
-                // bookingDetail: bookingDetail, // id, court_name, venue_id, guest_name, guest_phone, status, price_total, notes, expires_at
-                // paymentOption: paymentOption, // id, provider_id, name, type, currency, image_url, account_number
-                // selectedBookedSlots: selectedBookedSlots // start_time, end_time
+            const { bookingDetail, paymentOption, selectedBookedSlots } = data;
 
-                const { bookingDetail, paymentOption, selectedBookedSlots } = data;
-
-                // set bookingDetail
-                setName(bookingDetail.guest_name);
-                setPhone(bookingDetail.guest_phone);
-                setNotes(bookingDetail.notes);
-                setBookingId(bookingDetail.id);
-                setCourtName(bookingDetail.court_name);
-                setPrice(bookingDetail.price_total);
-                setExpireTime(Temporal.Instant.from(bookingDetail.expires_at));
+            // set bookingDetail
+            setName(bookingDetail.guest_name);
+            setPhone(bookingDetail.guest_phone);
+            setNotes(bookingDetail.notes);
+            setBookingId(bookingDetail.id);
+            setCourtName(bookingDetail.court_name);
+            setPrice(bookingDetail.price_total);
+            setBookingStatus(bookingDetail.status);
+            
+            setExpireTime(Temporal.Instant.from(bookingDetail.expires_at));
 
 
-                // set paymentOption
-                setPayments(paymentOption);
+            // set paymentOption
+            setPayments(paymentOption);
 
-                // set bookedSlots
-                setBookedSlots(selectedBookedSlots);
+            // set bookedSlots
+            setBookedSlots(selectedBookedSlots);
 
-            } catch (err) {
-                console.error("Failed to fetch booking data:", err);
-                setError("Gagal memuat detail pesanan. Silakan coba lagi.");
-            } finally {
-                setLoading(false);
-            }
+        } catch (err) {
+            console.error("Failed to fetch booking data, session might expired:",err);
+            localStorage.removeItem('booking_id');
+            setError("Gagal memuat detail pesanan, mungkin saja sesi sudah tidak aktif, silahkan lakukan booking ulang. Jika anda merasa ini salah, hubungi penyedia jasa.");
+        } finally {
+            setLoading(false);
         }
-
+    }
+    useEffect(() => {
+        // Definisikan fungsi fetch di dalam useEffect
         handleFetchingData();
     }, [params.booking_payment, params.venue_id]);
 
     // Timer countdown effect
     useEffect(() => {
         if (!expireTime) return;
+        if(bookingStatus !== 'initialized' && bookingStatus !== 'cancelled'){
+            // jika kasus booking menunggu confirmation atau sudah ke confir
+
+            return;
+        }
 
         const intervalId = setInterval(() => {
             const remainingMs = expireTime.epochMilliseconds - Temporal.Now.instant().epochMilliseconds;
-            if (remainingMs <= 0) {
+            if (remainingMs <= 0 ) {
                 setTimeRemain(0);
                 clearInterval(intervalId);
                 // Optionally, you can set an error or redirect here
@@ -147,6 +162,7 @@ export default function PaymentPage() {
             })
             .finally(() => {
                 setLoadingUpload(false);
+                handleFetchingData(); // perbarui sesi setelah upload selesai
             })
     }
 
@@ -206,10 +222,31 @@ export default function PaymentPage() {
 
     // Tampilkan state loading atau error
     if (loading) {
-        return <div className="flex justify-center items-center min-h-screen !text-black bg-gray-100">Loading...</div>;
+        return (
+            <div className="flex flex-col justify-center items-center min-h-screen bg-white text-gray-800">
+                <div className="flex items-center gap-4 p-8 bg-white rounded-lg">
+                    <i className="fa-solid fa-spinner fa-spin text-4xl text-green-600"></i>
+                    <span className="text-2xl font-semibold">Memuat Detail Pesanan...</span>
+                </div>
+            </div>
+        );
     }
     if (error) {
-        return <div className="flex justify-center items-center min-h-screen text-red-500  bg-gray-100">{error}</div>;
+        return (
+            <div className="flex flex-col justify-center items-center min-h-screen bg-white text-gray-800 p-4">
+                <div className="text-center bg-red-50 p-8 rounded-xl shadow-lg border border-red-200">
+                    <i className="fa-solid fa-circle-exclamation text-5xl text-red-500 mb-4"></i>
+                    <h1 className="text-2xl font-bold text-red-600">Terjadi Kesalahan</h1>
+                    <p className="mt-2 text-gray-600 max-w-md">{error}</p>
+                    <button
+                        onClick={() => router.back()}
+                        className="mt-6 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-md"
+                    >
+                        Kembali
+                    </button>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -225,11 +262,30 @@ export default function PaymentPage() {
                 </div>
 
                 {/* Timer Section */}
-                <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-800 p-4 rounded-md flex items-center gap-4 mb-8 shadow-sm">
-                    <i className="fa-solid fa-clock fa-spin text-2xl"></i>
+                <div className={`${bookingStatus === 'confirmed'? 'bg-green-100 border-green-500' : 'bg-amber-100 border-amber-500'} border-l-4 ${bookingStatus === 'confirmed'? 'text-black' : 'text-amber-800'} p-4 rounded-md flex items-center gap-4 mb-8 shadow-sm`}>
+                    <i className={bookingStatus === 'confirmed'? "fa-solid fa-check text-2xl text-green-600" : "fa-solid fa-clock fa-spin text-2xl"}></i>
                     <div>
-                        <h2 className="font-bold">Selesaikan dalam {formatDuration(timeRemain)}</h2>
-                        <p className="text-sm">Slot akan otomatis dilepas jika pembayaran tidak diselesaikan sebelum waktu habis.</p>
+                        {bookingStatus &&
+                            <h2 className="font-extrabold">Status Booking: {bookingStatus}</h2>
+                        }
+                        {
+                            bookingStatus === 'initialized' && 
+                            <h2 className="font-bold">Selesaikan booking dalam {formatDuration(timeRemain)}</h2>
+                        }
+                        { 
+                            bookingStatus === 'cencelled' &&
+                            <p className="text-sm">Booking telah dibatalkan oleh penyedia layanan.</p>
+                        }
+                        {
+                            bookingStatus === 'confirmed' &&
+                            <p className="text-sm">Booking telah dikonfirmasi oleh penyedia layanan, simpan booking-ID untuk konfirmasi lanjutan.</p>
+                        }
+                        {
+                            bookingStatus === 'pending' &&
+                            <p className="text-sm">Booking sedang menunggu konfirmasi dari penyedia layanan, simpan booking-ID untuk konfirmasi lanjutan.</p>
+                        
+                        }
+
                     </div>
                 </div>
 
@@ -244,28 +300,31 @@ export default function PaymentPage() {
                             <div className="space-y-4">
                                 <div>
                                     <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-                                    <input type="text" id="fullName" value={name} onChange={(e) => { setName(e.target.value) }} className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition outline-none" placeholder="Masukkan nama lengkap Anda" />
+                                    <input type="text" disabled={bookingStatus === 'confirmed'} id="fullName" value={name} onChange={(e) => { if(bookingStatus !== 'confirmed') setName(e.target.value) }} className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition outline-none" placeholder="Masukkan nama lengkap Anda" />
                                 </div>
                                 <div>
                                     <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon</label>
-                                    <input type="tel" id="phoneNumber" value={phone} onChange={(e) => { setPhone(e.target.value) }} className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition outline-none" placeholder="08XX-XXXX-XXXX" />
+                                    <input type="tel" disabled={bookingStatus === 'confirmed'} id="phoneNumber" value={phone} onChange={(e) => { if(bookingStatus !== 'confirmed') setPhone(e.target.value); }} className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition outline-none" placeholder="08XX-XXXX-XXXX" />
                                 </div>
                                 <div>
-                                    <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Catatan (Opsional)</label>
-                                    <textarea id="notes" value={notes} onChange={(e) => { setNotes(e.target.value) }} rows="3" className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition outline-none" placeholder="Tambah catatan untuk penyedia lapangan..."></textarea>
+                                    <label htmlFor="notes"  className="block text-sm font-medium text-gray-700 mb-1">Catatan (Opsional)</label>
+                                    <textarea id="notes" disabled={bookingStatus === 'confirmed'} value={notes} onChange={(e) => {if(bookingStatus !== 'confirmed') setNotes(e.target.value) }} rows="3" className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition outline-none" placeholder="Tambah catatan untuk penyedia lapangan..."></textarea>
                                 </div>
                             </div>
                         </div>
 
                         {/* Payment Method Card */}
-                        <div className="bg-white p-6 rounded-lg shadow-md">
-                            <h2 className="text-xl font-semibold mb-4">Metode Pembayaran</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {payments.map(payment => {
-                                    return paymentCard(payment);
-                                })}
+                        {bookingStatus !== 'confirmed' &&
+                            <div className="bg-white p-6 rounded-lg shadow-md">
+                                <h2 className="text-xl font-semibold mb-4">Metode Pembayaran</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {payments.map(payment => {
+                                        return paymentCard(payment);
+                                    })}
+                                </div>
                             </div>
-                        </div>
+                        }
+
                     </div>
 
                     {/* Right Column: Order Summary (Sticky) */}
@@ -279,7 +338,11 @@ export default function PaymentPage() {
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Booking-ID</span>
-                                    <span className="font-medium text-xs flex items-center"><p>{bookingId}</p></span>
+                                    <span className="font-medium text-xs flex items-center"><p>{bookingId}
+                                        <button type={'button'} className=" p-1 rounded-full hover:bg-gray-100 active:bg-gray-100" onClick={() => {
+                                            navigator.clipboard.writeText(bookingId); // 
+                                        }}><i className="fa-regular fa-copy"></i></button>
+                                        </p></span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Tanggal</span>
@@ -308,33 +371,41 @@ export default function PaymentPage() {
                                     <span>Total</span>
                                     <span className="text-xl text-green-600">{numberToRupiah(price).split(',')[0]}</span>
                                 </div>
-
-                                <div className="flex flex-col justify-center gap-2 items-start"> {/** image input section, input payment proof */}
-                                    <div>
-                                        <label className="px-2 font-semibold !text-gray-900/60">Bukti Pembayaran</label>
-                                        <InputImage onProcessed={(processedFile) => {
-                                            setFile(processedFile);
-                                            setPreview(URL.createObjectURL(processedFile)); // set prev image
-                                        }} className={`border-2 ${file ? 'border-green-400 bg-green-100 hover:bg-green-100/60' : 'border-gray-300'} font-extrabold !text-gray-900/40 hover:bg-gray-200/40 transition-color ease-in-out duration-100 cursor-pointer w-full py-2 px-4 rounded-md`} />
-                                    </div>
-                                    {preview &&
-                                        <div onClick={() => setImageViewSrc(preview)}>
-                                            <img src={preview} className="rounded-sm"></img>
+                                
+                                {
+                                    bookingStatus !== 'confirmed' &&
+                                    <div className="flex flex-col justify-center gap-2 items-start"> {/** image input section, input payment proof */}
+                                        <div>
+                                            <label className="px-2 font-semibold !text-gray-900/60">Bukti Pembayaran</label>
+                                            <InputImage onProcessed={(processedFile) => {
+                                                setFile(processedFile);
+                                                setPreview(URL.createObjectURL(processedFile)); // set prev image
+                                            }} className={`border-2 ${file ? 'border-green-400 bg-green-100 hover:bg-green-100/60' : 'border-gray-300'} font-extrabold !text-gray-900/40 hover:bg-gray-200/40 transition-color ease-in-out duration-100 cursor-pointer w-full py-2 px-4 rounded-md`} />
                                         </div>
-                                    }
-                                </div>
+                                        {preview &&
+                                            <div onClick={() => setImageViewSrc(preview)}>
+                                                <img src={preview} className="rounded-sm"></img>
+                                            </div>
+                                        }
+                                    </div>
+                                    
+                                }
+
                             </div>
 
                             {/* CTA Button */}
-                            <div className="mt-6 w-full">
-                                {errorUpload &&
-                                    <p className="text-red-500 px-2">{errorUpload}</p>
-                                }
-                                <button onClick={handlePayment} disabled={loadingUpload} className={`w-full  ${loadingUpload ? 'bg-gray-200/60 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 cursor-pointer'} text-white font-bold py-3 rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-green-300`}>
-                                    {loadingUpload ? <i className="fa-solid fa-arrows-rotate animate-spin !text-black"></i> : 'Kirim Bukti Pembayaran'}
-                                </button>
+                            {
+                                bookingStatus !== 'confirmed' &&
+                                <div className="mt-6 w-full">
+                                    {errorUpload &&
+                                        <p className="text-red-500 px-2">{errorUpload}</p>
+                                    }
+                                    <button onClick={handlePayment} disabled={loadingUpload} className={`w-full  ${loadingUpload ? 'bg-gray-200/60 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 cursor-pointer'} text-white font-bold py-3 rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-green-300`}>
+                                        {loadingUpload ? <i className="fa-solid fa-arrows-rotate animate-spin !text-black"></i> : (bookingStatus !== 'confirmed' && bookingStatus !== 'initialized'  ? 'Ubah Bukti Pembayaran' : 'Kirim Bukti Pembayaran')}
+                                    </button>
 
-                            </div>
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>

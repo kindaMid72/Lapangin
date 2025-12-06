@@ -239,7 +239,7 @@ route.get('/get_booking/:venueId/:bookingId', async (req, res) => {
         }
         const now = Temporal.Now.instant();
         const current = Temporal.Instant.from(bookingDetail.expires_at);
-        if( Temporal.Instant.compare(now, current) > 0) return res.sendStatus(404); // return 404, meaning booking session is no longer valid
+        if(bookingDetail.status === 'initialized' && Temporal.Instant.compare(now, current) > 0) return res.sendStatus(404); // return 404, meaning booking session is no longer valid
 
     // get payment option   
     const {data: paymentOption, error: paymentOptionError} = await sbAdmin
@@ -336,7 +336,7 @@ route.post('/initialize_payment', upload.single('file'), async (req, res) => {
         // check booking 
         const {data: booking, error: bookingError} = await sbAdmin
             .from('bookings')
-            .select('expires_at')
+            .select('expires_at, status')
             .eq('id', bookingId)
             .eq('venue_id', venueId);
             if(bookingError) {
@@ -344,6 +344,9 @@ route.post('/initialize_payment', upload.single('file'), async (req, res) => {
                 return res.sendStatus(500);
             }
             if(booking.length === 0) return res.sendStatus(404);
+            if(booking[0].status === 'confirmed'){ // if booking already confirmed, forbid update request
+                return res.sendStatus(403);
+            }
             if(Temporal.Instant.compare(Temporal.Now.instant(), Temporal.Instant.from(booking[0].expires_at)) > 0) return res.sendStatus(404); // return 404, meaning booking session is no longer valid
 
         // check payment
@@ -473,6 +476,41 @@ route.post('/initialize_payment', upload.single('file'), async (req, res) => {
         return res.sendStatus(500);
     } 
 
+})
+
+route.get('check_booking_status/:bookingId', async (req, res) => {
+    try{
+        // given booking id, check the status and expires
+        const bookingId = req.params.bookingId;
+        const sbAdmin = await createSupabaseAccess();
+
+        const {data: bookingStatus, error: bookingStatusError} = await sbAdmin
+            .from('bookings')
+            .select('status, expires_at')
+            .eq('id', bookingId);
+            if(bookingStatusError) {
+                console.error('error from microsite booking: ', bookingStatusError);
+                return res.sendStatus(500);
+            }
+
+        if(bookingStatus[0].status === 'initialized'){
+            const now = Temporal.Now.instant();
+            const current = Temporal.Instant.from(bookingStatus[0].expires_at);
+            const stillValid = Temporal.Instant.compare(now, current) < 0;
+
+            return res.status(200).json({
+                status: bookingStatus[0].status,
+                stillValid: stillValid
+            })
+        }
+        
+        return res.status(200).json({
+            status: bookingStatus[0].status,
+            stillValid: true
+        })
+    }catch(err){
+
+    }
 })
 
 
