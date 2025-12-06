@@ -1,7 +1,6 @@
 "use client";
 
 import useSessionStore from "@/shared/stores/authStore"; // Impor store Zustand
-import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -79,55 +78,60 @@ export default function VanueCreate() {
     };
 
     return (
-        <>
-            <div>
-                <div className="flex flex-col items-center justify-center min-h-screen md:w-full bg-gray-100 dark:bg-gray-800 font-mono">
-                    <div className="w-full max-w-2xl md:min-w-full p-8 md:p-0 bg-white md:h-screen dark:bg-gray-900 dark:md:bg-gray-800 rounded-xl shadow-lg md:flex md:rounded-none md:justify-between md:shadow-none ">
-                        {/* escape button */}
-                        <div className="flex flex-col md:items-center md:min-w-[400px] md:p-8 dark:md:bg-gray-900 md:rounded-r-2xl md:[box-shadow:0px_0px_10px_#3b474e]">
-                            <div className=" flex justify-start items-center md:w-full">
-                                <i className="fa-solid fa-xmark text-xl hover:text-red-400 cursor-pointer transition-colors duration-100 ease-in-out" onClick={() => router.push(`/${user_id}`)} ></i>
-                            </div>
-                            <div className="flex flex-col items-center justify-center md:flex-1 md:mx-10">
-                                <h1 className="text-4xl font-extrabold text-center mb-2">Buat CourtSpace Baru</h1>
-                                <p className="text-gray-600 text-center mb-8">Isi detail court space baru untuk memulai.</p>
-                            </div>
-                        </div>
-
-                        <form onSubmit={(e) => { handleCreateVenue(e) }} className="space-y-6 md:p-8 md:flex md:flex-col md:items-center md:justify-start md:w-full md:[&>div]:w-full overflow-auto scrollbar-hide ">
-                            <div>
-                                <label htmlFor="venueName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Venue Name</label>
-                                <input type="text" id="venueName" value={venueName} onChange={(e) => setVenueName(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="e.g., Lapangan Futsal Ceria" required />
-                            </div>
-                            <div>
-                                <label htmlFor="address" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Address</label>
-                                <input type="text" id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Full address of your venue" required />
-                            </div>
-                            <div>
-                                <label htmlFor="phone" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Phone Number</label>
-                                <input type="tel" id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="use a valid country code. e.g., +62xxxxxxxx" required />
-                            </div>
-                            {/* timezone picker */}
-                            <div>
-                                <label htmlFor="timezone" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Timezone</label>
-                                <select id="timezone" value={timezone} onChange={(e) => setTimezone(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
-                                    {allTimezones.map(tz => (
-                                        <option key={tz} value={tz}>
-                                            {tz}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
-                                <textarea id="description" rows="4" value={description} onChange={(e) => setDescription(e.target.value)} className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Write a brief description about your venue..."></textarea>
-                            </div>
-                            {error && <p className="text-red-500 text-center mt-4">{error}</p>}
-                            <button type="submit" className="w-full cursor-pointer text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-bold rounded-lg text-lg px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800 transition-colors">Buat CourtSpace</button>
-                        </form>
+        <div className="min-h-screen relative bg-gray-100 dark:bg-gray-900 font-mono">
+            <div className="hidden md:block top-8 left-8 md:fixed md:w-full md:mb-4 ">
+                <i className="fa-solid fa-arrow-left text-xl hover:text-green-400 cursor-pointer transition-colors duration-100 ease-in-out" onClick={() => router.push(`/${user_id}`)} ></i>
+            </div>
+            <div className="container mx-auto flex flex-col md:flex-row md:h-screen">
+                {/* Left Section / Header */}
+                <div className="w-full md:w-1/3 flex flex-col justify-center items-start h-full md:items-center p-8 text-center bg-white dark:bg-gray-800 md:bg-gray-900 md:dark:bg-gray-900 md:text-white rounded-b-2xl md:rounded-none shadow-lg md:shadow-none relative">
+                    <div className="absolute top-8 left-8 md:hidden md:w-full md:mb-4 ">
+                        <i className="fa-solid fa-arrow-left text-xl hover:text-green-400 cursor-pointer transition-colors duration-100 ease-in-out" onClick={() => router.push(`/${user_id}`)} ></i>
+                    </div>
+                    <div className="w-full mt-8 md:mt-0">
+                        <h1 className="text-3xl md:text-4xl font-extrabold mb-2">Buat CourtSpace Baru</h1>
+                        <p className="text-gray-600 dark:text-gray-400">Isi detail untuk memulai mengelola CourtSpace Anda.</p>
                     </div>
                 </div>
+
+                {/* Right Section / Form */}
+                <div className="w-full md:w-2/3 p-6 md:p-10 flex flex-col">
+                    <form onSubmit={handleCreateVenue} className="space-y-4 flex-grow overflow-y-auto scrollbar-hide pr-2">
+                        <div>
+                            <label htmlFor="venueName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Venue</label>
+                            <input type="text" id="venueName" value={venueName} onChange={(e) => setVenueName(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="e.g., Lapangan Futsal Ceria" required />
+                        </div>
+                        <div>
+                            <label htmlFor="address" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Alamat</label>
+                            <input type="text" id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Alamat lengkap venue Anda" required />
+                        </div>
+                        <div>
+                            <label htmlFor="phone" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nomor Telepon</label>
+                            <input type="tel" id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Gunakan kode negara, cth: +62812xxxx" required />
+                        </div>
+                        <div>
+                            <label htmlFor="timezone" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Zona Waktu</label>
+                            <select id="timezone" value={timezone} onChange={(e) => setTimezone(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
+                                {allTimezones.map(tz => (
+                                    <option key={tz} value={tz}>
+                                        {tz}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Deskripsi</label>
+                            <textarea id="description" rows="4" value={description} onChange={(e) => setDescription(e.target.value)} className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Tulis deskripsi singkat tentang venue Anda..."></textarea>
+                        </div>
+                        {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+                        <div className="mt-8 text-center">
+                            <button type="submit" className="w-full md:w-auto cursor-pointer bg-green-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-green-700 transition-all duration-150 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800">
+                                Buat CourtSpace
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </>
+        </div>
     );
 }

@@ -41,12 +41,12 @@ export default function Venues() {
         const controller = new AbortController();
 
         async function checkForInvites() {
-            if(!session) return;
-            try{
+            if (!session) return;
+            try {
                 await api.get('/user_venues/check_invite')
                     .then(res => res.data.result)
                     .then(result => setThereIsAnInvite(result))
-            }catch(err){
+            } catch (err) {
                 console.error(err)
             }
         }
@@ -59,10 +59,10 @@ export default function Venues() {
                     const response = await api.get(`/user_venues/get_all_user_venues`, {
                         signal: controller.signal // Kaitkan AbortController
                     })
-                    .then(response => {
-                        const venuesData = Object.values(response?.data?.data || {});
-                        setVenues(venuesData);
-                    })
+                        .then(response => {
+                            const venuesData = Object.values(response?.data?.data || {});
+                            setVenues(venuesData);
+                        })
                 } catch (err) {
                     if (axios.isCancel(err)) {
                         console.log('Request canceled:', err.message);
@@ -107,43 +107,48 @@ export default function Venues() {
 
     return (
         <>
-        {showInvite && <VenueInvitePage onClose={() => setShowInvite(false)} />}
-        {/* invite section */}
-            <div onClick={() => { setShowInvite(true);}} className="cursor-pointer size-10 z-50 fixed top-3 right-3 rounded-full group flex justify-center items-center dark:bg-gray-700 bg-gray-400 ">
+            {showInvite && <VenueInvitePage onClose={() => setShowInvite(false)} />}
+            {/* invite section */}
+            <div onClick={() => { setShowInvite(true); }} className="cursor-pointer size-10 z-50 fixed top-3 right-3 rounded-full group flex justify-center items-center dark:bg-gray-700 bg-gray-400 ">
                 <div className="relative">
                     {thereIsAnInvite && <div className="size-2 absolute bg-red-400 z-39 rounded-full -top-[10px] -right-[26px]"> </div>}
                 </div>
                 <i className={`fa-solid fa-envelope text-xl text-gray-400 group-hover:text-green-400 transition-colors duration-100 ease-in `}></i>
             </div>
-        <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800 font-mono p-1 md:p-0 md:rounded-none ">
-            <div className="flex min-w-2xl p-8 md:p-0 md:w-full md:h-screen md:relative bg-white dark:bg-gray-900 dark:md:bg-gray-800 rounded-xl shadow-lg flex-col md:flex-row">
-                <div className="flex flex-col md:w-2/3 md:px-4 md:rounded-r-2xl md:[box-shadow:0px_0px_10px_#3b474e] items-center md:justify-center justif-center w-fit md:bg-gray-900 ">
-                    <h1 className="text-4xl font-extrabold text-center mb-2">Pilih CourtSpace</h1>
-                    <p className="text-gray-600 md:text-gray-400 text-center mb-8">Pilih tempat untuk dikelola.<br></br>Anda hanya bisa bergabung dengan invitasi.</p>
-                </div>
+            <div className="min-h-screen bg-gray-100 dark:bg-gray-900 font-mono">
+                <div className="container mx-auto flex flex-col md:flex-row md:h-screen">
+                    {/* Left Section / Header */}
+                    <div className="w-full md:w-1/3 flex flex-col justify-center items-center p-8 text-center bg-white dark:bg-gray-800 md:bg-gray-900 md:text-white rounded-b-2xl md:rounded-none shadow-lg md:shadow-none">
+                        <h1 className="text-3xl md:text-4xl font-extrabold mb-2">Pilih CourtSpace</h1>
+                        <p className="text-gray-600 dark:text-gray-400">Pilih tempat untuk dikelola.<br />Anda hanya bisa bergabung dengan invitasi.</p>
+                    </div>
 
-                <div className="flex flex-col md:py-5 md:flex-row md:flex-wrap md:items-start content-start items-center justify-center w-full gap-6 md:h-full overflow-auto scrollbar-hide">
-                    {venues.map((item) => (
-                        <div key={item.venue_id} className="border w-full md:w-1/3 cursor-pointer rounded-lg dark:border-gray-600  p-4 flex flex-col items-center hover:shadow-md transition-shadow">
-                            <h2 className="text-xl font-bold mb-4 text-nowrap text-ellipsis overflow-hidden w-full">{item.venue_name}</h2>
-                            {/* <h3 className=" w-full pb-3 font-[100] font-gray-600 italic text-[0.9em] text-start">{item.role}</h3> */}
-                            <button
-                                onClick={() => handleSelectVenue(item.venue_id, item.venue_name, item.role)}
-                                className="w-full bg-green-700 cursor-pointer text-white py-2 px-4 rounded-lg hover:bg-green-800 transition-colors font-semibold"
-                            >
-                                Select
+                    {/* Right Section / Venue List */}
+                    <div className="w-full md:w-2/3 p-6 md:p-10 flex flex-col">
+                        <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto scrollbar-hide">
+                            {venues.map((item) => (
+                                <div key={item.venue_id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex flex-col justify-between shadow hover:shadow-lg transition-shadow">
+                                    <div>
+                                        <h2 className="text-xl font-bold mb-1 text-gray-900 dark:text-white truncate">{item.venue_name}</h2>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Peran Anda: {item.role}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleSelectVenue(item.venue_id, item.venue_name, item.role)}
+                                        className="w-full bg-green-600 text-white py-2 px-4 rounded-lg cursor-pointer hover:bg-green-700 transition-colors font-semibold"
+                                    >
+                                        Pilih
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-8 text-center">
+                            <button onClick={() => router.push(`/${params.user_id}/new_vanue`)} className="w-full md:w-auto bg-transparent border-2 cursor-pointer border-green-600 text-green-600 dark:text-green-400 dark:border-green-400 px-8 py-3 rounded-lg font-bold hover:bg-green-600 hover:text-white dark:hover:bg-green-400 dark:hover:text-gray-900 transition-all duration-150">
+                                + Buat CourtSpace Baru
                             </button>
                         </div>
-                    ))}
-
-                    <div onClick={() => {
-                        router.push(`/${params.user_id}/new_vanue`)
-                    }} className=" md:absolute md:bottom-30 md:left-1/8 md:w-fit border-1 border-gray-700 w-full text-xl font-extrabold cursor-pointer rounded-lg p-4 flex flex-col items-center hover:shadow-md hover:bg-green-800 hover:border-transparent transition-all duration-100 ease-in-out hover:text-white">
-                        <p>Buat CourtSpace</p>
                     </div>
                 </div>
             </div>
-        </div>
         </>
     );
 }

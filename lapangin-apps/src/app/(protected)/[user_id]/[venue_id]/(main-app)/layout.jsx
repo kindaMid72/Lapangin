@@ -16,7 +16,7 @@ export default function MainAppLayout({ children }) {
     }, [fetchSession]); // Dependency array memastikan ini hanya berjalan sekali saat komponen dimuat
 
     return (
-        <div className='flex flex-col bg-white dark:bg-gray-800 min-h-screen h-fit'>
+        <div className='flex flex-col bg-white dark:bg-gray-800 min-h-screen'>
             <Navbar></Navbar>
             {children}
         </div>
