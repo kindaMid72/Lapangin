@@ -30,6 +30,8 @@ export default function PaymentPage() {
     const [expireTime, setExpireTime] = useState(0);
     const [bookingStatus, setBookingStatus] = useState('');
 
+    // existing payment detail
+
     // payment option
     const [payments, setPayments] = useState([]);
     const [selectedPayment, setSelectedPayment] = useState(null); // containt selected payment option
@@ -69,13 +71,14 @@ export default function PaymentPage() {
             // bookingDetail: bookingDetail, // id, court_name, venue_id, guest_name, guest_phone, status, price_total, notes, expires_at
             // paymentOption: paymentOption, // id, provider_id, name, type, currency, image_url, account_number
             // selectedBookedSlots: selectedBookedSlots // start_time, end_time
+            // paymentDetail: paymentDetail, // id, venue_payment_id, status, payment_recipe_url
 
             if (!data) {
                 setError("Gagal memuat detail pesanan, mungkin saja sesi sudah tidak aktif. Jika anda merasa ini salah, hubungi penyedia jasa.");
                 return;
             }
 
-            const { bookingDetail, paymentOption, selectedBookedSlots } = data;
+            const { bookingDetail, paymentOption, selectedBookedSlots, paymentDetail } = data;
 
             // set bookingDetail
             setName(bookingDetail.guest_name);
@@ -87,6 +90,13 @@ export default function PaymentPage() {
             setBookingStatus(bookingDetail.status);
             
             setExpireTime(Temporal.Instant.from(bookingDetail.expires_at));
+
+            if(paymentDetail.length > 0){ // check if there any payment initiated before
+                // set image prev
+                setPreview(paymentDetail[0]?.payment_recipe_url)
+                // set payment option
+                setSelectedPayment(paymentDetail[0]?.venue_payment_id)
+            }
 
 
             // set paymentOption
@@ -152,18 +162,19 @@ export default function PaymentPage() {
         fd.append('payment_id', selectedPayment);
         fd.append('venue_id', params.venue_id);
 
-        setLoadingUpload(true);
-        setErrorUpload(null);
-
-        await initializePayment(fd)
-            .catch(err => {
-                setErrorUpload(err);
-                console.error(err);
-            })
-            .finally(() => {
-                setLoadingUpload(false);
-                handleFetchingData(); // perbarui sesi setelah upload selesai
-            })
+        try {
+            setLoadingUpload(true);
+            setErrorUpload(null);
+            await initializePayment(fd);
+        } catch (err) {
+            // Tangkap error dari initializePayment di sini
+            const errorMessage = err.response?.data?.error || 'Gagal mengunggah bukti pembayaran.';
+            setErrorUpload(errorMessage);
+            console.error("Upload payment proof failed:", err);
+        } finally {
+            setLoadingUpload(false);
+            handleFetchingData(); // Selalu perbarui sesi setelah mencoba upload
+        }
     }
 
     // mini components

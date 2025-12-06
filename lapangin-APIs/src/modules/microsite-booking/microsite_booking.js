@@ -304,10 +304,22 @@ route.get('/get_booking/:venueId/:bookingId', async (req, res) => {
 
     bookingDetail.court_name = courtName[0].name;
 
+    // get payment by bookingId, return (paymantId, venue_payment_id, status, payment_recipe_url)
+    const {data: paymentDetail, error: paymentDetailError} = await sbAdmin
+        .from('payments')
+        .select('id, venue_payment_id, status, payment_recipe_url')
+        .eq('booking_id', bookingId);
+    if(paymentDetailError){
+        console.error('error from microsite-booking while query payment detail: ', paymentDetailError);
+        return res.sendStatus(500);
+    }
+
+
     return res.status(200).json({
         bookingDetail: bookingDetail, // id, court_name,  venue_id, guest_name, guest_phone, status, price_total, notes, expires_at
         paymentOption: paymentOption, // id, provider_id, name, type, currency, image_url, account_number
-        selectedBookedSlots: selectedBookedSlots // start_time, end_time
+        selectedBookedSlots: selectedBookedSlots, // start_time, end_time
+        paymentDetail: paymentDetail,
     })
 
 
@@ -347,14 +359,15 @@ route.post('/initialize_payment', upload.single('file'), async (req, res) => {
             if(booking[0].status === 'confirmed'){ // if booking already confirmed, forbid update request
                 return res.sendStatus(403);
             }
-            if(Temporal.Instant.compare(Temporal.Now.instant(), Temporal.Instant.from(booking[0].expires_at)) > 0) return res.sendStatus(404); // return 404, meaning booking session is no longer valid
+            if(booking[0].status === 'initialized' && Temporal.Instant.compare(Temporal.Now.instant(), Temporal.Instant.from(booking[0].expires_at)) > 0) return res.sendStatus(404); // return 404, meaning booking session is no longer valid
 
         // check payment
         const {data: payment, error: paymentError} = await sbAdmin
             .from('venue_payments')
             .select('id')
             .eq('id', selectedPayment)
-            .eq('venue_id', venueId);
+            .eq('venue_id', venueId)
+            .eq('is_active', true);
         if(paymentError) {
             console.error('microsite-booking error, at checking payment: ', paymentError);
             return res.sendStatus(500);
@@ -414,17 +427,19 @@ route.post('/initialize_payment', upload.single('file'), async (req, res) => {
         }
         const {error: createPaymentError} = await sbAdmin
             .from('payments')
-            .insert([
+            .upsert(
                 {
                     booking_id: bookingId,
                     venue_payment_id: selectedPayment,
                     payment_recipe_url: image_url,
                     payment_recipe_metadata: imageMetadata,
                     status: 'initiated',
+                },{
+                    onConflict: 'booking_id' // jika booking_id sudah ada (payment sudah di inisiasi sebelumnya)
                 }
-            ])
+            )
             if(createPaymentError) {
-                console.error('error from microsite-booking: ', createPaymentError);
+                console.error('error from microsite-booking, insert new payments: ', createPaymentError);
                 return res.sendStatus(500);
             }
             

@@ -22,6 +22,7 @@ async function initializePayment(fd) {
             'Content-Type': 'multipart/form-data'
         }
     })
+
 }
 async function checkBookingStatus(bookingId){
     return await api.get(`/microsite_booking/check_booking_status/${bookingId}`);
