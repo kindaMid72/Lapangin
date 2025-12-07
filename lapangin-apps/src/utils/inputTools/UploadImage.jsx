@@ -54,29 +54,29 @@ async function processImageFile(file, opts) {
 }
 
 function loadImage(url) {
-return new Promise((res, rej) => {
-    const img = new Image();
-    img.onload = () => res(img);
-    img.onerror = () => rej(new Error("Gagal load image"));
-    img.src = url;
-});
+    return new Promise((res, rej) => {
+        const img = new Image();
+        img.onload = () => res(img);
+        img.onerror = () => rej(new Error("Gagal load image"));
+        img.src = url;
+    });
 }
 
 function fit(w, h, maxW, maxH) {
-if (w <= maxW && h <= maxH) return [w, h];
-const r = Math.min(maxW / w, maxH / h);
-return [Math.round(w * r), Math.round(h * r)];
+    if (w <= maxW && h <= maxH) return [w, h];
+    const r = Math.min(maxW / w, maxH / h);
+    return [Math.round(w * r), Math.round(h * r)];
 }
 
 function encodeBest(canvas, quality) {
-const mimes = ["image/webp", "image/jpeg"];
-return new Promise(async (resolve, reject) => {
-    for (const mime of mimes) {
-    const blob = await new Promise((r) =>
-        canvas.toBlob(r, mime, quality)
-    );
-    if (blob) return resolve(blob);
-    }
-    reject(new Error("Encoding failed"));
-});
+    const mimes = ["image/webp", "image/jpeg"];
+    return new Promise(async (resolve, reject) => {
+        for (const mime of mimes) {
+        const blob = await new Promise((r) =>
+            canvas.toBlob(r, mime, quality)
+        );
+        if (blob) return resolve(blob);
+        }
+        reject(new Error("Encoding failed"));
+    });
 }

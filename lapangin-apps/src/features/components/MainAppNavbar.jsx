@@ -27,14 +27,9 @@ export default function NavBar() {
 
     // handler
     const handleNavigate = (path) => {
-        const venueId = activeVenue.venueId;
-        router.push(`/${user_id}/${venueId}/${path}`);
+        router.push(`/${params.user_id}/${params.venue_id}/${path}`);
         setSelectedMenu(path);
     }
-
-    useEffect(() => {
-
-    }, [session]);
 
     return (<div className='sticky top-0 z-50 h-fit w-full'>
         <div className='flex items-center  flex-wrap sticky gap-4 light:bg-slate-100 dark:bg-slate-900 [&_li]:hover:bg-green-700 [&_li]:cursor-pointer text-[1em] p-2 [&_li]:font-mono [&_li]:text-[1em]'>
