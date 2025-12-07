@@ -18,7 +18,7 @@ import numberToRupiah from '@/utils/formatChanger/numberToRupiah.js';
 
 
 // api
-import { getSelectedDateException, getSlotsForSelectedDate } from '@/Apis/booking/courtMicrositeAvailability';
+import { getSelectedDateException, getSlotsForSelectedDate } from '@/Apis/microsite-booking/courtMicrositeAvailability';
 import { initializeBooking, checkBookingStatus } from '@/Apis/microsite-booking/microsite-booking-api.js';
 
 export default function BookingPage() {

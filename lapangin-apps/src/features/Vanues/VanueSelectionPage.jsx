@@ -109,15 +109,55 @@ export default function Venues() {
     async function handleLogout() {
         const supabase = supabaseClient();
         let { error: logoutError } = await supabase.auth.signOut();
-        if(logoutError) {
+        if (logoutError) {
             setError('logout failed');
-        }else{
+        } else {
             router.push('/login');
         }
     }
 
-    if (isLoading) return <div className="flex items-center justify-center min-h-screen opacity-30">Loading venues...</div>;
-    if (error) return <div className="flex items-center justify-center min-h-screen text-red-500">Error: {error}</div>;
+    // --- Enhanced Loading and Error States ---
+
+    const SkeletonCard = () => (
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow animate-pulse">
+            <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
+            <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded w-full"></div>
+        </div>
+    );
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-100 dark:bg-gray-900 font-mono">
+                <div className="container mx-auto flex flex-col md:flex-row md:h-screen">
+                    {/* Left Skeleton */}
+                    <div className="w-full md:w-1/3 flex flex-col justify-center items-center p-8 text-center bg-white dark:bg-gray-800 md:bg-gray-900 rounded-b-2xl md:rounded-none shadow-lg md:shadow-none animate-pulse">
+                        <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded w-2/3 mb-2"></div>
+                        <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-full max-w-xs"></div>
+                    </div>
+                    {/* Right Skeleton */}
+                    <div className="w-full md:w-2/3 p-6 md:p-10">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <SkeletonCard />
+                            <SkeletonCard />
+                            <SkeletonCard />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) return (
+        <div className="flex flex-col items-center justify-center min-h-screen text-center text-red-500 p-4">
+            <i className="fa-solid fa-circle-exclamation text-4xl mb-4"></i>
+            <h2 className="text-2xl font-bold mb-2">Oops! Terjadi Kesalahan</h2>
+            <p className="mb-6">{error}</p>
+            <button onClick={() => window.location.reload()} className="bg-green-600 text-white py-2 px-6 rounded-lg hover:bg-green-700 transition-colors font-semibold">
+                Coba Lagi
+            </button>
+        </div>
+    );
 
     return (
         <>

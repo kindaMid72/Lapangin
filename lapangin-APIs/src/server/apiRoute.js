@@ -9,6 +9,7 @@ import VanueController from '../modules/venues/venuesControllers.js';
 import SlotAvailability from '../modules/courts/slotAvailability.js';
 import TeamController from '../modules/team/teamControllers.js';
 import AdminPayment from '../modules/payment/adminPaymentControllers.js';
+import AdminBooking from '../modules/bookings/admin-booking.js';
 
 
 // microsites
@@ -31,7 +32,8 @@ route.use('/courtAvailability', SlotAvailability); // admin court
 route.use('/team', TeamController);
 // admin payment
 route.use('/admin_payment', AdminPayment);
-
+// admin booking
+route.use('/admin_booking', AdminBooking);
 // microsites (all request to these path will be available publicly)
 route.use('/courtMicrosite', CourtMicrositeController); // microsite
 route.use('/publicAvailability', AvaillabilityRules)
