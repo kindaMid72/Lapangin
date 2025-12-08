@@ -12,7 +12,7 @@ dotenv.config();
 import route from './src/server/apiRoute.js';
 
 const app = express();
-const port = 3030;
+const port = process.env.PORT;
 
 const corsOptions = {
     origin: process.env.CORS_ORIGIN,

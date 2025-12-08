@@ -33,8 +33,9 @@ export default function EditBookingRow({ booking, onClose, onUpdateSuccess }) {
         return Temporal.Instant.from(dateString).toZonedDateTimeISO('Asia/Jakarta').toPlainDate().toString();
     };
 
-    return (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50 p-4 transition-opacity duration-300" onClick={onClose}>
+    return (<>
+    
+        <td className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50 p-4 transition-opacity duration-300" onClick={onClose}>
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col md:flex-row overflow-hidden animate-fade-in-up" onClick={(e) => e.stopPropagation()}>
 
                 {/* Left Side: Payment Proof */}
@@ -101,6 +102,7 @@ export default function EditBookingRow({ booking, onClose, onUpdateSuccess }) {
                     </div>
                 </div>
             </div>
-        </div>
+        </td>
+    </>
     );
 }

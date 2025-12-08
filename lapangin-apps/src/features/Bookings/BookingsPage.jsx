@@ -118,7 +118,7 @@ export default function BookingPage() {
                 </div>
             </div>
 
-            <table className="w-full border-1 bg-white dark:bg-gray-800 dark:border-gray-700 mt-4 text-center border-separate border-spacing-0 rounded-xl overflow-hidden">
+            <table className="w-full overflow-x-auto max-w-screen border-1 bg-white dark:bg-gray-800 dark:border-gray-700 mt-4 text-center border-separate border-spacing-0 rounded-xl overflow-hidden">
                 <thead className=" ">
                     <tr className=" border-1 border-b-white [&_th]:p-3 dark:bg-gray-900">
                         <th className="">Booking ID</th>
