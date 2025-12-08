@@ -175,21 +175,21 @@ route.get('/get_booking_page/:venueId', async (req, res) => {
     }
 
 })
-route.get('/get_booking_by_last_index', async (req, res) => {
-    // get booking by last index
-    // TODO:
+// route.get('/get_booking_by_last_index', async (req, res) => {
+//     // get booking by last index
+//     // TODO:
 
-})
+// })
 
-route.get('/get_booking_by_search', async (req, res) => {
-    // get booking by search
+// route.get('/get_booking_by_search', async (req, res) => {
+//     // get booking by search
 
-})
+// })
 
-route.get('/get_booking_detail_by_id', async (req, res) => {
-    // get booking detail by id
-    // TODO:
-})
+// route.get('/get_booking_detail_by_id', async (req, res) => {
+//     // get booking detail by id
+//     // TODO:
+// })
 
 route.patch('/update_booking_status/:bookingId', async (req, res) => {
     try {

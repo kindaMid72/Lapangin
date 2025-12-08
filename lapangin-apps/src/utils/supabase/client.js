@@ -1,4 +1,4 @@
-'use client'
+'use client';
 // supabase for client
 
 // Impor `createBrowserClient` dari `@supabase/ssr` untuk client-side di Next.js App Router.

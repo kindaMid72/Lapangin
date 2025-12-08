@@ -1,3 +1,4 @@
+'use client';
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 
