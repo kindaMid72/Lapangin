@@ -1,6 +1,8 @@
-import Link from 'next/link'
 
-export default function Landing_PageLayout({ children }) {
+
+export default function Home({children}){
+
+
     return (
         <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-mono">
             <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-md">

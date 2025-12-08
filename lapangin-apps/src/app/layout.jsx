@@ -1,4 +1,4 @@
-
+import Link from "next/link";
 
 // component
 import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -24,12 +24,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="dark bg-white dark:bg-gray-800" suppressHydrationWarning={true}>
-      <body
-        className={`roboto-mono-regular antialiased bg-white dark:bg-gray-800`}
-      >
-        {children}
-      </body>
-    </html>
+        <html lang="id">
+            <body className="font-sans">
+                {children}
+            </body>
+        </html>
   );
 }
