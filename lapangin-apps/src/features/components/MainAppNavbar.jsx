@@ -58,10 +58,10 @@ export default function NavBar() {
                         </div> */}
                         {activeVenue?.userRole === 'admin' || activeVenue?.userRole === 'owner' &&
                         <>
-                        <li className={`w-full ${selectedMenu === 'dashboard' ? activeClass : inactiveClass} transition-color duration-100 ease-in-out`} onClick={() => handleNavigate('dashboard')}><i className="fa-solid fa-table mr-2 "></i>Dashboard</li>
+                        {/* <li className={`w-full ${selectedMenu === 'dashboard' ? activeClass : inactiveClass} transition-color duration-100 ease-in-out`} onClick={() => handleNavigate('dashboard')}><i className="fa-solid fa-table mr-2 "></i>Dashboard</li> */}
                         <li className={`w-full ${selectedMenu === 'bookings' ? activeClass : inactiveClass} transition-color duration-100 ease-in-out`} onClick={() => handleNavigate('bookings')}><i className="fa-solid fa-calendar mr-2 "></i>Bookings</li>
                         <li className={`w-full ${selectedMenu === 'courts' ? activeClass : inactiveClass} transition-color duration-100 ease-in-out`} onClick={() => handleNavigate('courts')}><i className="fa-solid fa-layer-group mr-2 "></i>Courts</li>
-                        <li className={`w-full ${selectedMenu === 'reports' ? activeClass : inactiveClass} transition-color duration-100 ease-in-out`} onClick={() => handleNavigate('reports')}><i className="fa-solid fa-chart-simple mr-2 "></i>Report</li>
+                        {/* <li className={`w-full ${selectedMenu === 'reports' ? activeClass : inactiveClass} transition-color duration-100 ease-in-out`} onClick={() => handleNavigate('reports')}><i className="fa-solid fa-chart-simple mr-2 "></i>Report</li> */}
                         <li className={`w-full ${selectedMenu === 'team' ? activeClass : inactiveClass} transition-color duration-100 ease-in-out`} onClick={() => handleNavigate('team')}><i className="fa-solid fa-people-group mr-2 "></i>Team</li>
                         <li className={`w-full ${selectedMenu === 'settings' ? activeClass : inactiveClass} transition-color duration-100 ease-in-out`} onClick={() => handleNavigate('settings')}><i className="fa-solid fa-gear mr-2 "></i>Settings</li>
                         <li className={`w-full flex-1 relative hover:!bg-transparent `} onClick={() => { router.push(`/${params.user_id}`) }}>
