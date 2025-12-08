@@ -18,7 +18,7 @@ export default function NavBar() {
     const { user_id } = params;
 
     // state
-    const [selectedMenu, setSelectedMenu] = useState('dashboard');
+    const [selectedMenu, setSelectedMenu] = useState('bookings');
     const [showSiderBar, setShowSiderbar] = useState(false);
 
     // class ui element
