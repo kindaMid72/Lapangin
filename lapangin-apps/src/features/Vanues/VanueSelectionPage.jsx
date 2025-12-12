@@ -104,7 +104,7 @@ export default function Venues() {
         });
         getVenueMetadata(venueId);
 
-        router.replace(`/${user_id}/${venueId}/dashboard`);
+        router.replace(`/${user_id}/${venueId}/bookings`);
     };
     async function handleLogout() {
         const supabase = supabaseClient();
