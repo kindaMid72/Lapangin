@@ -1,77 +1,93 @@
 "use client";
 
-import useSessionStore from "@/shared/stores/authStore"; // Impor store Zustand
+import useSessionStore from "@/shared/stores/authStore";
+import api from "@/utils/axiosClient/axiosInterceptor.js";
+import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import api from "@/utils/axiosClient/axiosInterceptor.js";
 
-
-// utils
+// Default center for the map (e.g., Jakarta)
+const defaultMapCenter = {
+    lat: -6.2088,
+    lng: 106.8456,
+};
 
 export default function VanueCreate() {
-    // Ambil sesi dan fungsi fetch dari store global
     const { session, fetchSession, isLoading } = useSessionStore();
-
-    useEffect(() => {
-        // Jika sesi belum ada di store, panggil fungsi untuk mengambilnya.
-        if (!session) {
-            fetchSession();
-        }
-    }, []);
-
-
-    // env varible
-    const apiURL = process.env.NEXT_PUBLIC_SERVER_API_URL;
-
+    const { isLoaded } = useJsApiLoader({
+        id: 'google-map-script',
+        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+    });
     const router = useRouter();
     const params = useParams();
     const { user_id } = params;
 
-    // on save vanue, create a new vanue in database and track for changes from database in realtime by subscribing
-    const [venueName, setVenueName] = useState("");
-    const [address, setAddress] = useState("");
-    const [phone, setPhone] = useState("");
-    const [description, setDescription] = useState("");
+    const [venueData, setVenueData] = useState({
+        venueName: "",
+        address: "",
+        phone: "",
+        description: "",
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Jakarta",
+        latitude: defaultMapCenter.lat,
+        longitude: defaultMapCenter.lng,
+    });
+    const [markerPosition, setMarkerPosition] = useState(defaultMapCenter);
     const [error, setError] = useState("");
-    // Mendeteksi zona waktu pengguna atau default ke 'Asia/Jakarta'
-    const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Jakarta");
 
     const allTimezones = Intl.supportedValuesOf('timeZone');
+
+    useEffect(() => {
+        if (!session) {
+            fetchSession();
+        }
+    }, [session, fetchSession]);
+
+    const handleInputChange = (e) => {
+        const { id, value } = e.target;
+        setVenueData((prevData) => ({
+            ...prevData,
+            [id]: value,
+        }));
+    };
+
+    const handleMapClick = (e) => {
+        const newPosition = {
+            lat: e.latLng.lat(),
+            lng: e.latLng.lng(),
+        };
+        setMarkerPosition(newPosition);
+        setVenueData((prevData) => ({
+            ...prevData,
+            latitude: newPosition.lat,
+            longitude: newPosition.lng,
+        }));
+    };
 
     const handleCreateVenue = async (e) => {
         e.preventDefault();
         setError("");
+        if (isLoading) {
+            alert("Please wait, session is loading...");
+            return;
+        }
+        if (!session || !session.access_token) {
+            alert("Authentication session not found. Please log in again.");
+            return;
+        }
+
         try {
-            // Tampilkan loading atau nonaktifkan tombol jika sesi masih dimuat
-            if (isLoading) {
-                alert("Please wait, session is loading...");
-                return;
-            }
-
-            // Pastikan sesi (dan token) sudah ada sebelum mengirim request
-            if (!session || !session.access_token) {
-                alert("Authentication session not found. Please log in again.");
-                return;
-            }
-            // TODO: Implement API call to create the venue, and navigate to /[user_id]
-            // then, trigger update for new vanue in database
-
-            // 1. check for valid input, vanue_name, address, and phone number must be not null
-            const response = await api.post(`/venue/create_new_venue`,
-                {
-                    vanueName: venueName,
-                    address: address,
-                    phoneNumber: phone,
-                    timezone: timezone,
-                    description: description
-                }
-            )
-            // debug section
-            console.log(response);
-
-            router.push(`/${user_id}`); // Navigate back to venue selection
-
+            const response = await api.post(`/venue/create_new_venue`, {
+                vanueName: venueData.venueName,
+                address: venueData.address,
+                phoneNumber: venueData.phone,
+                timezone: venueData.timezone,
+                description: venueData.description,
+                langitude: venueData.latitude,
+                longtitude: venueData.longitude,
+            });
+            console.log(response); // For debugging
+            router.push(`/${user_id}`);
         } catch (err) {
             setError(err.message);
         }
@@ -99,19 +115,42 @@ export default function VanueCreate() {
                     <form onSubmit={handleCreateVenue} className="space-y-4 flex-grow overflow-y-auto scrollbar-hide pr-2">
                         <div>
                             <label htmlFor="venueName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Venue</label>
-                            <input type="text" id="venueName" value={venueName} onChange={(e) => setVenueName(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="e.g., Lapangan Futsal Ceria" required />
+                            <input type="text" id="venueName" value={venueData.venueName} onChange={handleInputChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="e.g., Lapangan Futsal Ceria" required />
                         </div>
                         <div>
                             <label htmlFor="address" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Alamat</label>
-                            <input type="text" id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Alamat lengkap venue Anda" required />
+                            <input type="text" id="address" value={venueData.address} onChange={handleInputChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Alamat lengkap venue Anda" required />
                         </div>
                         <div>
                             <label htmlFor="phone" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nomor Telepon</label>
-                            <input type="tel" id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Gunakan kode negara, cth: +62812xxxx" required />
+                            <input type="tel" id="phone" value={venueData.phone} onChange={handleInputChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Gunakan kode negara, cth: +62812xxxx" required />
                         </div>
+
+                        {/* maps section */}
+                        <div>
+                            <label htmlFor="map" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Lokasi di Peta</label>
+                            <div className="h-64 w-full rounded-lg overflow-hidden bg-gray-300 dark:bg-gray-700">
+                                {isLoaded ? (
+                                    <GoogleMap
+                                        mapContainerStyle={{ width: '100%', height: '100%' }}
+                                        center={defaultMapCenter}
+                                        zoom={12}
+                                        onClick={handleMapClick}
+                                    >
+                                        <Marker position={markerPosition} />
+                                    </GoogleMap>
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                        <p>Memuat Peta...</p>
+                                    </div>
+                                )}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Klik pada peta untuk menentukan lokasi venue Anda.</p>
+                        </div>
+
                         <div>
                             <label htmlFor="timezone" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Zona Waktu</label>
-                            <select id="timezone" value={timezone} onChange={(e) => setTimezone(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
+                            <select id="timezone" value={venueData.timezone} onChange={handleInputChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
                                 {allTimezones.map(tz => (
                                     <option key={tz} value={tz}>
                                         {tz}
@@ -121,7 +160,7 @@ export default function VanueCreate() {
                         </div>
                         <div>
                             <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Deskripsi</label>
-                            <textarea id="description" rows="4" value={description} onChange={(e) => setDescription(e.target.value)} className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Tulis deskripsi singkat tentang venue Anda..."></textarea>
+                            <textarea id="description" rows="4" value={venueData.description} onChange={handleInputChange} className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Tulis deskripsi singkat tentang venue Anda..."></textarea>
                         </div>
                         {error && <p className="text-red-500 text-center mt-4">{error}</p>}
                         <div className="mt-8 text-center">

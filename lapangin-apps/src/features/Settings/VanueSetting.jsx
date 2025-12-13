@@ -5,6 +5,7 @@
  */
 
 // imports
+import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -17,10 +18,19 @@ import api from '@/utils/axiosClient/axiosInterceptor.js';
 import useVenueStore from "@/shared/stores/venueStore";
 import ToggleButton from "../components/ToggleButton";
 
+const defaultMapCenter = {
+    lat: -6.2088,
+    lng: 106.8456,
+};
 
 export default function VanueSetting() {
     const { activeVenue, venueMetadata, setSelectedVenue, getVenueMetadata } = useVenueStore();
     const { venue_id, user_id } = useParams();
+
+    const { isLoaded } = useJsApiLoader({
+        id: 'google-map-script',
+        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+    });
 
     // state
     const [isLoading, setLoading] = useState(false);
@@ -32,6 +42,9 @@ export default function VanueSetting() {
     const [description, setDescription] = useState('');
     const [isActive, setIsActive] = useState(false);
     const [timezone, setTimezone] = useState('');
+    const [latitude, setLatitude] = useState(defaultMapCenter.lat);
+    const [longitude, setLongitude] = useState(defaultMapCenter.lng);
+    const [origin, setOrigin] = useState('');
 
     const allTimezones = Intl.supportedValuesOf('timeZone');
 
@@ -41,6 +54,9 @@ export default function VanueSetting() {
     useEffect(() => {
         if (!activeVenue) return;
         getVenueMetadata(activeVenue.venueId);
+        if (typeof window !== 'undefined') {
+            setOrigin(window.location.origin);
+        }
     }, [activeVenue]); // trigger update jika activeVenue berubah (user ganti venue)
 
     useEffect(() => {
@@ -55,6 +71,10 @@ export default function VanueSetting() {
             setIsActive(venueMetadata?.is_active ?? '');
             setTimezone(venueMetadata?.timezone ?? '');
 
+            const loc = typeof venueMetadata?.location === 'string' ? JSON.parse(venueMetadata.location) : (venueMetadata?.location || {});
+            setLatitude(loc?.langitude || defaultMapCenter.lat);
+            setLongitude(loc?.longtitude || defaultMapCenter.lng);
+
             setLoading(false);
             return;
         } else {
@@ -66,20 +86,33 @@ export default function VanueSetting() {
 
     // watch for changes
     useEffect(() => {
+        const loc = typeof venueMetadata?.location === 'string' ? JSON.parse(venueMetadata.location) : (venueMetadata?.location || {});
+        const initLat = loc?.langitude || defaultMapCenter.lat;
+        const initLng = loc?.longtitude || defaultMapCenter.lng;
+
         if (venueMetadata && (
             name !== (venueMetadata?.name ?? '') ||
             address !== (venueMetadata?.address ?? '') ||
             phone !== (venueMetadata?.phone ?? '') ||
             email !== (venueMetadata?.email ?? '') ||
             description !== (venueMetadata?.description ?? '') ||
-            isActive !== (venueMetadata?.is_active ?? '')) ||
-            timezone !== (venueMetadata?.timezone ?? '')
+            isActive !== (venueMetadata?.is_active ?? '') ||
+            timezone !== (venueMetadata?.timezone ?? '') ||
+            latitude !== initLat ||
+            longitude !== initLng)
         ) {
             setChangeOccured(true);
         } else {
             setChangeOccured(false);
         }
-    }, [name, address, phone, email, description, isActive, venueMetadata, timezone]);
+    }, [name, address, phone, email, description, isActive, venueMetadata, timezone, latitude, longitude]);
+
+    const handleMapClick = (e) => {
+        const newLat = e.latLng.lat();
+        const newLng = e.latLng.lng();
+        setLatitude(newLat);
+        setLongitude(newLng);
+    };
 
     async function handleSubmit() {
         try {
@@ -91,7 +124,9 @@ export default function VanueSetting() {
                 email: email,
                 description: description,
                 is_active: isActive,
-                timezone: timezone
+                timezone: timezone,
+                langitude: latitude,
+                longtitude: longitude
             }).then(res => {
                 getVenueMetadata(activeVenue.venueId); // trigger update for venue metadata, this also will trigger update in the page
                 setChangeOccured(false);
@@ -110,7 +145,7 @@ export default function VanueSetting() {
                 <div className="w-full p-6 bg-white dark:bg-gray-900 m-3 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
                     {/* Header */}
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Pengaturan Venue</h1>
+                        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Pengaturan CourtSpace</h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola informasi detail untuk venue Anda.</p>
                     </div>
 
@@ -123,6 +158,29 @@ export default function VanueSetting() {
                                 <input id="venue-name" onChange={(e) => setName(e.target.value)} value={name} placeholder="Nama Usaha Anda" className="w-full p-2 bg-transparent dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" />
                             </div>
                         </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Link Public Booking</label>
+                            <div className="flex items-center gap-3">
+                                <i className="fa-solid fa-globe text-gray-400"></i>
+                                <div className="flex-1 flex items-center gap-2">
+                                    <p
+                                        onClick={() => origin && window.open(`${origin}/booking_now/${venue_id}`, '_blank')}
+                                        className="w-full p-2 bg-gray-50 dark:bg-gray-800 text-blue-600 dark:text-blue-400 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer hover:underline truncate"
+                                    >
+                                        {origin ? `${origin}/booking_now/${venue_id}` : 'Loading...'}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={() => { if (origin) { navigator.clipboard.writeText(`${origin}/booking_now/${venue_id}`); alert('Link berhasil disalin!'); } }}
+                                        className="p-2 text-gray-500 hover:text-green-600 transition-colors"
+                                        title="Salin Link"
+                                    >
+                                        <i className="fa-regular fa-copy text-xl"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Bagikan link ini kepada pelanggan untuk pemesanan online.</p>
+                        </div>
 
                         <div>
                             <label htmlFor="venue-address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alamat Lengkap</label>
@@ -130,6 +188,27 @@ export default function VanueSetting() {
                                 <i className="fa-solid fa-map-location-dot text-gray-400"></i>
                                 <input id="venue-address" onChange={(e) => setAddress(e.target.value)} value={address} placeholder="Alamat lengkap venue" className="w-full p-2 bg-transparent dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" />
                             </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Lokasi di Peta</label>
+                            <div className="h-64 w-full rounded-lg overflow-hidden bg-gray-300 dark:bg-gray-700 border border-gray-300 dark:border-gray-600">
+                                {isLoaded ? (
+                                    <GoogleMap
+                                        mapContainerStyle={{ width: '100%', height: '100%' }}
+                                        center={{ lat: Number(latitude), lng: Number(longitude) }}
+                                        zoom={15}
+                                        onClick={handleMapClick}
+                                    >
+                                        <Marker position={{ lat: Number(latitude), lng: Number(longitude) }} />
+                                    </GoogleMap>
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                        <p>Memuat Peta...</p>
+                                    </div>
+                                )}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Klik pada peta untuk memperbarui lokasi venue Anda.</p>
                         </div>
 
                         <div>

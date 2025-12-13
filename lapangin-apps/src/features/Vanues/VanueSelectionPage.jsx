@@ -210,7 +210,7 @@ export default function Venues() {
                             ))}
                         </div>
                         <div className="mt-8 text-center">
-                            <button onClick={() => router.push(`/${params.user_id}/new_vanue`)} className="w-full md:w-auto bg-transparent border-2 cursor-pointer border-green-600 text-green-600 dark:text-green-400 dark:border-green-400 px-8 py-3 rounded-lg font-bold hover:bg-green-600 hover:text-white dark:hover:bg-green-600 dark:hover:text-white transition-all duration-150">
+                            <button onClick={() => router.push(`/${params.user_id}/new_courtspace`)} className="w-full md:w-auto bg-transparent border-2 cursor-pointer border-green-600 text-green-600 dark:text-green-400 dark:border-green-400 px-8 py-3 rounded-lg font-bold hover:bg-green-600 hover:text-white dark:hover:bg-green-600 dark:hover:text-white transition-all duration-150">
                                 + Buat CourtSpace Baru
                             </button>
                         </div>
